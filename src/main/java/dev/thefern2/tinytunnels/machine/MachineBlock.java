@@ -1,5 +1,7 @@
 package dev.thefern2.tinytunnels.machine;
 
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.jspecify.annotations.Nullable;
@@ -11,6 +13,7 @@ import dev.thefern2.tinytunnels.registry.ModDataComponents;
 import dev.thefern2.tinytunnels.room.Room;
 import dev.thefern2.tinytunnels.room.RoomData;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -22,6 +25,9 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 
 public class MachineBlock extends Block implements EntityBlock {
     public static final MapCodec<MachineBlock> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
@@ -29,11 +35,43 @@ public class MachineBlock extends Block implements EntityBlock {
             propertiesCodec()
     ).apply(i, MachineBlock::new));
 
+    /**
+     * One flag per face: true when that face has a tunnel. Drives the letter overlay on the outside,
+     * and tells the client which faces are tunnel faces (see {@link #hasTunnel}).
+     */
+    public static final Map<Direction, BooleanProperty> TUNNEL_FACES = Map.of(
+            Direction.DOWN, BlockStateProperties.DOWN,
+            Direction.UP, BlockStateProperties.UP,
+            Direction.NORTH, BlockStateProperties.NORTH,
+            Direction.SOUTH, BlockStateProperties.SOUTH,
+            Direction.WEST, BlockStateProperties.WEST,
+            Direction.EAST, BlockStateProperties.EAST);
+
     private final MachineSize size;
 
     public MachineBlock(MachineSize size, Properties properties) {
         super(properties);
         this.size = size;
+        BlockState state = stateDefinition.any();
+        for (BooleanProperty property : TUNNEL_FACES.values()) state = state.setValue(property, false);
+        registerDefaultState(state);
+    }
+
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        TUNNEL_FACES.values().forEach(builder::add);
+    }
+
+    public static boolean hasTunnel(BlockState state, Direction face) {
+        return state.getBlock() instanceof MachineBlock && state.getValue(TUNNEL_FACES.get(face));
+    }
+
+    /** The same state with the tunnel flags set to exactly {@code faces}. */
+    public static BlockState withTunnelFaces(BlockState state, Set<Direction> faces) {
+        for (Map.Entry<Direction, BooleanProperty> entry : TUNNEL_FACES.entrySet()) {
+            state = state.setValue(entry.getValue(), faces.contains(entry.getKey()));
+        }
+        return state;
     }
 
     public MachineSize getSize() {

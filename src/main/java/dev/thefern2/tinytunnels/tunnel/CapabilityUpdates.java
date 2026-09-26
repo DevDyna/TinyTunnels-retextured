@@ -5,17 +5,23 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import dev.thefern2.tinytunnels.TinyTunnels;
 import dev.thefern2.tinytunnels.loading.RoomTickets;
+import dev.thefern2.tinytunnels.machine.MachineBlock;
 import dev.thefern2.tinytunnels.machine.MachineBlockEntity;
 import dev.thefern2.tinytunnels.room.Room;
+import dev.thefern2.tinytunnels.room.RoomData;
 import dev.thefern2.tinytunnels.room.RoomDimension;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.level.ChunkEvent;
@@ -35,6 +41,7 @@ public final class CapabilityUpdates {
     private record LoadedChunk(ServerLevel level, ChunkPos pos) {}
 
     private static final Set<Target> PENDING = new LinkedHashSet<>();
+    private static final Set<UUID> FACE_SYNC = new LinkedHashSet<>();
     // Chunk loads can arrive off the main tick; collected here and handled on the next tick.
     private static final Queue<LoadedChunk> LOADED_CHUNKS = new ConcurrentLinkedQueue<>();
 
@@ -42,8 +49,13 @@ public final class CapabilityUpdates {
         PENDING.add(new Target(level, pos.immutable()));
     }
 
-    /** Everything that exposes this room's tunnels changed: the machine, and every tunnel wall. */
+    /**
+     * Everything that exposes this room's tunnels changed: the machine, and every tunnel wall. Pass
+     * the room as it was <em>before</em> a change when tunnels were removed, so their old positions
+     * get notified too; the machine's face flags are synced from the latest data either way.
+     */
     public static void roomChanged(MinecraftServer server, Room room) {
+        FACE_SYNC.add(room.id());
         room.host().ifPresent(host -> {
             ServerLevel hostLevel = server.getLevel(host.dimension());
             if (hostLevel != null) schedule(hostLevel, host.pos());
@@ -64,6 +76,7 @@ public final class CapabilityUpdates {
     @SubscribeEvent
     static void onServerTick(ServerTickEvent.Post event) {
         handleLoadedChunks(event.getServer());
+        syncMachineFaces(event.getServer());
         if (PENDING.isEmpty()) return;
         List<Target> targets = List.copyOf(PENDING);
         PENDING.clear();
@@ -71,6 +84,24 @@ public final class CapabilityUpdates {
             if (!target.level().isLoaded(target.pos())) continue;
             target.level().invalidateCapabilities(target.pos());
             target.level().updateNeighborsAt(target.pos(), target.level().getBlockState(target.pos()).getBlock());
+        }
+    }
+
+    /** Sets each changed room's machine face flags (the letter overlays) to its current tunnels. */
+    private static void syncMachineFaces(MinecraftServer server) {
+        if (FACE_SYNC.isEmpty()) return;
+        List<UUID> rooms = List.copyOf(FACE_SYNC);
+        FACE_SYNC.clear();
+        RoomData data = RoomData.get(server);
+        for (UUID id : rooms) {
+            Room room = data.room(id).orElse(null);
+            GlobalPos host = room == null ? null : room.host().orElse(null);
+            ServerLevel level = host == null ? null : server.getLevel(host.dimension());
+            if (level == null || !level.isLoaded(host.pos())) continue;
+            BlockState state = level.getBlockState(host.pos());
+            if (!(state.getBlock() instanceof MachineBlock)) continue;
+            BlockState synced = MachineBlock.withTunnelFaces(state, room.tunnels().keySet());
+            if (synced != state) level.setBlock(host.pos(), synced, Block.UPDATE_ALL);
         }
     }
 
@@ -93,6 +124,7 @@ public final class CapabilityUpdates {
     @SubscribeEvent
     static void onServerStopped(ServerStoppedEvent event) {
         PENDING.clear();
+        FACE_SYNC.clear();
         LOADED_CHUNKS.clear();
     }
 

@@ -22,6 +22,7 @@ public class ModLanguageProvider extends LanguageProvider {
 
         addItem(ModItems.SHRINKER, "Shrinker");
         addItem(ModItems.TUNNEL, "Tunnel");
+        addItem(ModItems.TUNNEL_WRENCH, "Tunnel Wrench");
 
         add("tooltip.tinytunnels.machine.unbound", "New room");
         add("tooltip.tinytunnels.machine.bound", "Room %s");

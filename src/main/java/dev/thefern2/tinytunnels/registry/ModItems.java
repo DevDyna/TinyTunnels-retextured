@@ -27,6 +27,7 @@ public final class ModItems {
     public static final DeferredItem<BlockItem> ROOM_WALL = ITEMS.registerSimpleBlockItem(ModBlocks.ROOM_WALL);
     public static final DeferredItem<ShrinkerItem> SHRINKER = ITEMS.registerItem("shrinker", ShrinkerItem::new, p -> p.stacksTo(1));
     public static final DeferredItem<TunnelItem> TUNNEL = ITEMS.registerItem("tunnel", TunnelItem::new);
+    public static final DeferredItem<Item> TUNNEL_WRENCH = ITEMS.registerSimpleItem("tunnel_wrench", p -> p.stacksTo(1));
 
     private ModItems() {}
 }

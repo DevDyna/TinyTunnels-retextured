@@ -1,7 +1,57 @@
 {
-  "variants": {
-    "": {
-      "model": "tinytunnels:block/tiny_machine"
+  "multipart": [
+    {
+      "apply": {
+        "model": "tinytunnels:block/tiny_machine"
+      }
+    },
+    {
+      "apply": {
+        "model": "tinytunnels:block/machine_port_down"
+      },
+      "when": {
+        "down": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "tinytunnels:block/machine_port_west"
+      },
+      "when": {
+        "west": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "tinytunnels:block/machine_port_east"
+      },
+      "when": {
+        "east": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "tinytunnels:block/machine_port_north"
+      },
+      "when": {
+        "north": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "tinytunnels:block/machine_port_up"
+      },
+      "when": {
+        "up": "true"
+      }
+    },
+    {
+      "apply": {
+        "model": "tinytunnels:block/machine_port_south"
+      },
+      "when": {
+        "south": "true"
+      }
     }
-  }
+  ]
 }

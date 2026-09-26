@@ -1,0 +1,32 @@
+{
+  "textures": {
+    "port": "tinytunnels:block/machine_port_south",
+    "particle": "tinytunnels:block/machine_port_south"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        16.01
+      ],
+      "to": [
+        16,
+        16,
+        16.01
+      ],
+      "faces": {
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#port",
+          "cullface": "south"
+        }
+      }
+    }
+  ]
+}

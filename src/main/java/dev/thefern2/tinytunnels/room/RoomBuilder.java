@@ -4,6 +4,7 @@ import dev.thefern2.tinytunnels.registry.ModBlocks;
 import dev.thefern2.tinytunnels.tunnel.TunnelWallBlock;
 import dev.thefern2.tinytunnels.wall.ShellProtection;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -19,7 +20,10 @@ public final class RoomBuilder {
         ShellProtection.edit(() -> {
             buildShell(rooms, room.geometry());
             room.tunnels().forEach((face, pos) -> {
-                BlockState tunnel = ModBlocks.TUNNEL_WALL.get().defaultBlockState().setValue(TunnelWallBlock.FACE, face);
+                Direction inward = room.geometry().inwardNormal(pos);
+                if (inward == null) return;
+                BlockState tunnel = ModBlocks.TUNNEL_WALL.get().defaultBlockState()
+                        .setValue(TunnelWallBlock.FACE, face).setValue(TunnelWallBlock.INWARD, inward);
                 if (!rooms.getBlockState(pos).equals(tunnel)) rooms.setBlock(pos, tunnel, Block.UPDATE_ALL);
             });
         });

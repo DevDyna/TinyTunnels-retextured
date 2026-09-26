@@ -5,11 +5,13 @@ import org.jspecify.annotations.Nullable;
 import dev.thefern2.tinytunnels.registry.ModBlockEntities;
 import dev.thefern2.tinytunnels.room.Room;
 import dev.thefern2.tinytunnels.room.RoomData;
+import dev.thefern2.tinytunnels.wall.ShellProtection;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -65,7 +67,16 @@ public class TunnelBlockEntity extends BlockEntity {
             CapabilityUpdates.schedule(rooms, worldPosition);
             Room room = room();
             if (room != null) CapabilityUpdates.roomChanged(rooms.getServer(), room);
+            // Tunnels placed before the inward property existed: correct it on the next tick.
+            rooms.getServer().execute(this::fixInwardState);
         }
+    }
+
+    private void fixInwardState() {
+        Direction inward = inward();
+        BlockState state = getBlockState();
+        if (isRemoved() || inward == null || !(level instanceof ServerLevel rooms) || state.getValue(TunnelWallBlock.INWARD) == inward) return;
+        ShellProtection.edit(() -> rooms.setBlock(worldPosition, state.setValue(TunnelWallBlock.INWARD, inward), Block.UPDATE_ALL));
     }
 
     @Override

@@ -64,13 +64,15 @@ Manual checks for Phase 6a of `tiny-tunnels-implementation.md`: unbreakable shel
    - [ ] In survival, one Tunnel item was used.
 2. Place tunnels on blocks touching an inside corner, e.g. two walls and the floor meeting at one corner.
    - [ ] All three are accepted, each gets its own letter, and items reach each one's inner side. The shell's true edge and corner blocks sit behind the corner and can't be clicked from inside, so the "Tunnels can't go on an edge or corner" refusal never shows in normal play. It's only a safety check.
-3. Right-click the tunnel with an empty hand, several times.
+3. Hold the **Tunnel Wrench** (Tiny Tunnels tab) and right-click the tunnel several times.
    - [ ] The letter cycles D → U → N → S → W → E, skipping letters other tunnels in this room already use. The action bar names the side each time.
 4. Place tunnels until all six letters are used, then try a seventh.
    - [ ] Refused: "All six sides already have a tunnel".
-   - [ ] Right-clicking a tunnel now says "Every other side already has a tunnel".
-5. With **both hands empty**, sneak + right-click a tunnel.
-   - [ ] It turns back into a plain wall, "Tunnel removed" shows, and in survival you get the Tunnel item back.
+   - [ ] Right-clicking a tunnel with the wrench now says "Every other side already has a tunnel".
+5. Sneak + right-click a tunnel with the Tunnel Wrench.
+   - [ ] It turns back into a plain wall, "Tunnel removed" shows, and in survival the Tunnel item goes to your inventory.
+   - [ ] **Other wrenches work too:** repeat 3 and 5 with the Pipez **Pipe Wrench**, which Pipez tags `c:tools/wrench`.
+   - [ ] **Nothing else edits tunnels:** right-click a tunnel with an empty hand, and with a block in hand. The tunnel doesn't change, and the block places against the tunnel normally.
 6. List the room's tunnels. Click the room's ID in `debug rooms`, or copy it:
    ```
    /tinytunnels debug rooms
@@ -148,6 +150,28 @@ Set up one room with a **U** tunnel (machine top) and a **D** tunnel (machine bo
 
 1. Build a small ME network outside: an **ME Energy Acceptor** fed FE from a Creative Battery Box, **ME Cables**, and an **ME Terminal** (no controller needed for small networks). Put an **ME Storage Bus** on a machine face that has a tunnel. Inside, put a chest with some items behind that tunnel.
    - [ ] The ME Terminal shows the chest's items, and you can take them out and put items in.
+
+## 10. Redstone and chests
+
+Room walls, tunnel walls and machines are **not redstone conductors** (changed 2026-09-26). Chests open under them, and power doesn't pass through them. Redstone tunnels aren't built yet (Phase 7), so no signal should cross between a room and its machine.
+
+1. **Chest under the ceiling.** Inside a room, place a chest directly under the ceiling (a wall or tunnel above it) and open it.
+   - [ ] It opens.
+2. **Chest under a machine.** Outside, place a chest directly under a machine and open it.
+   - [ ] It opens.
+3. **No power through a machine.** Outside, put a lever on one side of a machine and a Redstone Lamp touching the **opposite** side. Flip the lever.
+   - [ ] The lamp stays off.
+
+   For comparison, swap the machine for a stone block (lever on one side, lamp on the other).
+   - [ ] With stone, the lamp turns on. That's normal conductor behaviour, which our blocks no longer have.
+4. **A lever on a machine still powers what touches the lever.** Keep the lever on the machine's side, and replace the ground block directly below the lever with a Redstone Lamp, so the lamp touches the lever but not the machine. Flip the lever.
+   - [ ] The lamp turns on. Only power passing *through* our blocks is gone; levers and dust next to them work normally.
+5. **Dust on top.** Place redstone dust on top of a machine and on a room floor, then power it with a lever next to it.
+   - [ ] The dust can be placed and carries power across the top of the block.
+6. **No signal crosses a tunnel.** Outside, power the machine's face that has a tunnel (a lever on the machine, or a redstone block touching that face). Inside, place a Redstone Lamp touching that tunnel.
+   - [ ] The lamp stays off. Signals only cross once redstone tunnels exist.
+7. **Hopper lock still local.** Outside, the hopper from 3.1 feeding the machine: power the hopper itself with a lever.
+   - [ ] The hopper stops, as vanilla hoppers do when powered. Unpower it and feeding resumes.
 
 ## Notes
 

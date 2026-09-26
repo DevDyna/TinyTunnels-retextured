@@ -34,7 +34,8 @@ public class TunnelItem extends Item {
         RoomData data = RoomData.get(rooms.getServer());
         Room room = data.byChunk(new ChunkPos(pos.getX() >> 4, pos.getZ() >> 4)).orElse(null);
         if (room == null || !room.geometry().isShell(pos)) return InteractionResult.PASS;
-        if (room.geometry().inwardNormal(pos) == null) {
+        Direction inward = room.geometry().inwardNormal(pos);
+        if (inward == null) {
             if (player != null) player.sendOverlayMessage(Component.translatable("message.tinytunnels.tunnel.edge"));
             return InteractionResult.FAIL;
         }
@@ -44,7 +45,7 @@ public class TunnelItem extends Item {
             return InteractionResult.FAIL;
         }
 
-        ShellProtection.edit(() -> rooms.setBlock(pos, ModBlocks.TUNNEL_WALL.get().defaultBlockState().setValue(TunnelWallBlock.FACE, face), Block.UPDATE_ALL));
+        ShellProtection.edit(() -> rooms.setBlock(pos, ModBlocks.TUNNEL_WALL.get().defaultBlockState().setValue(TunnelWallBlock.FACE, face).setValue(TunnelWallBlock.INWARD, inward), Block.UPDATE_ALL));
         data.setTunnel(room.id(), face, pos);
         data.room(room.id()).ifPresent(updated -> CapabilityUpdates.roomChanged(rooms.getServer(), updated));
         context.getItemInHand().consume(1, player);

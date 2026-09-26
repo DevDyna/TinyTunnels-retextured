@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "tinytunnels:item/tunnel_wrench"
+  }
+}

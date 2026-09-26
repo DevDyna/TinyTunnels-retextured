@@ -9,6 +9,7 @@
   "block.tinytunnels.tunnel_wall": "Tunnel Wall",
   "item.tinytunnels.shrinker": "Shrinker",
   "item.tinytunnels.tunnel": "Tunnel",
+  "item.tinytunnels.tunnel_wrench": "Tunnel Wrench",
   "itemGroup.tinytunnels": "Tiny Tunnels",
   "message.tinytunnels.enter.no_room": "This machine has no room yet",
   "message.tinytunnels.exit.no_return": "Couldn't find the way back; sent to world spawn",
