@@ -1,0 +1,22 @@
+{
+  "variants": {
+    "face=down": {
+      "model": "tinytunnels:block/tunnel_wall_down"
+    },
+    "face=east": {
+      "model": "tinytunnels:block/tunnel_wall_east"
+    },
+    "face=north": {
+      "model": "tinytunnels:block/tunnel_wall_north"
+    },
+    "face=south": {
+      "model": "tinytunnels:block/tunnel_wall_south"
+    },
+    "face=up": {
+      "model": "tinytunnels:block/tunnel_wall_up"
+    },
+    "face=west": {
+      "model": "tinytunnels:block/tunnel_wall_west"
+    }
+  }
+}

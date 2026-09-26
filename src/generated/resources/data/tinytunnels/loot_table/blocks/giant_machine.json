@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "function": "minecraft:copy_components",
+              "include": [
+                "tinytunnels:room_id"
+              ],
+              "source": "block_entity"
+            }
+          ],
+          "name": "tinytunnels:giant_machine"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "tinytunnels:blocks/giant_machine"
+}

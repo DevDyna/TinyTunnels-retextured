@@ -1,0 +1,10 @@
+{
+  "values": [
+    "tinytunnels:tiny_machine",
+    "tinytunnels:small_machine",
+    "tinytunnels:normal_machine",
+    "tinytunnels:large_machine",
+    "tinytunnels:giant_machine",
+    "tinytunnels:maximum_machine"
+  ]
+}

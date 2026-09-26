@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "tinytunnels:block/normal_machine"
+    }
+  }
+}
