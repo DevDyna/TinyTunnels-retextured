@@ -22,7 +22,6 @@ public final class ModCreativeTabs {
                 output.accept(ModItems.TUNNEL);
                 output.accept(ModItems.REDSTONE_TUNNEL);
                 output.accept(ModItems.TUNNEL_WRENCH);
-                output.accept(ModItems.ROOM_WALL);
             })
             .build());
 
