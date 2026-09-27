@@ -18,6 +18,7 @@ import dev.thefern2.tinytunnels.room.RoomData;
 import dev.thefern2.tinytunnels.room.RoomBuilder;
 import dev.thefern2.tinytunnels.room.RoomDimension;
 import dev.thefern2.tinytunnels.room.RoomGeometry;
+import dev.thefern2.tinytunnels.teleport.RoomTeleporter;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.UuidArgument;
@@ -28,8 +29,6 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.portal.TeleportTransition;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
@@ -39,7 +38,7 @@ public final class TinyTunnelsCommand {
     @SubscribeEvent
     static void register(RegisterCommandsEvent event) {
         event.getDispatcher().register(Commands.literal(TinyTunnels.MODID)
-                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                .requires(source -> source.hasPermission(Commands.LEVEL_GAMEMASTERS))
                 .then(Commands.literal("debug")
                         .then(Commands.literal("build")
                                 .then(Commands.argument("gridIndex", IntegerArgumentType.integer(0))
@@ -71,7 +70,7 @@ public final class TinyTunnelsCommand {
 
         RoomGeometry room = new RoomGeometry(gridIndex, size);
         RoomBuilder.buildNew(rooms, room);
-        player.teleport(new TeleportTransition(rooms, room.spawn(), Vec3.ZERO, player.getYRot(), player.getXRot(), TeleportTransition.DO_NOTHING));
+        RoomTeleporter.teleport(player, rooms, room.spawn(), player.getYRot(), player.getXRot());
         source.sendSuccess(() -> Component.literal("Built room " + gridIndex + " (" + size + "x" + size + ") at " + room.min().toShortString()), true);
         return 1;
     }
@@ -112,7 +111,7 @@ public final class TinyTunnelsCommand {
         if (!occupied.isEmpty()) {
             source.sendSuccess(() -> Component.literal(occupied.size() + " machine chunk(s) held because a player is inside"), false);
             occupied.forEach((id, host) -> source.sendSuccess(() -> Component.literal("    room " + id.toString().substring(0, 8)
-                    + " -> machine at " + host.pos().toShortString() + " in " + host.dimension().identifier()).withStyle(ChatFormatting.GRAY), false));
+                    + " -> machine at " + host.pos().toShortString() + " in " + host.dimension().location()).withStyle(ChatFormatting.GRAY), false));
         }
         return active.size();
     }
@@ -154,13 +153,13 @@ public final class TinyTunnelsCommand {
     }
 
     private static Component describe(Room room) {
-        String host = room.host().map(h -> h.pos().toShortString() + " in " + h.dimension().identifier()).orElse("not placed");
+        String host = room.host().map(h -> h.pos().toShortString() + " in " + h.dimension().location()).orElse("not placed");
         RoomGeometry geometry = room.geometry();
         // Clicking the ID fills in the give command for that room.
         Component id = Component.literal(room.id().toString()).withStyle(style -> style
                 .withColor(ChatFormatting.AQUA)
-                .withClickEvent(new ClickEvent.SuggestCommand("/" + TinyTunnels.MODID + " debug give " + room.id()))
-                .withHoverEvent(new HoverEvent.ShowText(Component.literal("Click to get a machine bound to this room"))));
+                .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/" + TinyTunnels.MODID + " debug give " + room.id()))
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Click to get a machine bound to this room"))));
         return Component.empty().append(id).append("  #" + room.gridIndex() + "  " + room.size() + "x" + room.size()
                 + "  at " + geometry.min().toShortString() + "  host: " + host + "  tunnels: " + room.tunnels().size() + "  redstone: " + room.redstone().size());
     }

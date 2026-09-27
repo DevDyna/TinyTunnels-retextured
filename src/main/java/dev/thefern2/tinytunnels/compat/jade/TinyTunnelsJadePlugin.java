@@ -6,7 +6,7 @@ import dev.thefern2.tinytunnels.machine.MachineBlockEntity;
 import dev.thefern2.tinytunnels.tunnel.RedstoneTunnelBlockEntity;
 import dev.thefern2.tinytunnels.tunnel.RedstoneTunnelWallBlock;
 import dev.thefern2.tinytunnels.tunnel.TunnelWallBlock;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import snownee.jade.api.IWailaClientRegistration;
 import snownee.jade.api.IWailaCommonRegistration;
 import snownee.jade.api.IWailaPlugin;
@@ -18,9 +18,9 @@ import snownee.jade.api.WailaPlugin;
  */
 @WailaPlugin
 public class TinyTunnelsJadePlugin implements IWailaPlugin {
-    static final Identifier MACHINE = TinyTunnels.id("machine");
-    static final Identifier TUNNEL = TinyTunnels.id("tunnel");
-    static final Identifier REDSTONE_TUNNEL = TinyTunnels.id("redstone_tunnel");
+    static final ResourceLocation MACHINE = TinyTunnels.id("machine");
+    static final ResourceLocation TUNNEL = TinyTunnels.id("tunnel");
+    static final ResourceLocation REDSTONE_TUNNEL = TinyTunnels.id("redstone_tunnel");
 
     @Override
     public void register(IWailaCommonRegistration registration) {

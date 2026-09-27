@@ -1,30 +1,24 @@
 package dev.thefern2.tinytunnels.gametest;
 
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
 import dev.thefern2.tinytunnels.TinyTunnels;
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.FunctionGameTestInstance;
+import net.minecraft.gametest.framework.GameTestGenerator;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.gametest.framework.TestData;
-import net.minecraft.gametest.framework.TestEnvironmentDefinition;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.gametest.framework.TestFunction;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 import net.neoforged.neoforge.gametest.GameTestHooks;
-import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
  * Registers the tunnel and redstone GameTests, only when GameTests are enabled (dev runs and the GameTest
  * server, never in a production install). Run them all with {@code ./gradlew runGameTestServer},
- * or in a dev client with {@code /test runall tinytunnels}.
+ * or in a dev client with {@code /test runall}.
  */
 public final class TinyTunnelsGameTests {
-    private static final DeferredRegister<Consumer<GameTestHelper>> FUNCTIONS = DeferredRegister.create(Registries.TEST_FUNCTION, TinyTunnels.MODID);
-
     private record Test(Consumer<GameTestHelper> function, int maxTicks) {}
 
     private static final Map<String, Test> TESTS = new LinkedHashMap<>();
@@ -37,7 +31,7 @@ public final class TinyTunnelsGameTests {
         TESTS.put("empty_versus_null", new Test(TunnelGameTests::emptyVersusNull, 100));
         TESTS.put("pipe_before_tunnel", new Test(TunnelGameTests::pipeBeforeTunnel, 100));
         TESTS.put("hot_swap", new Test(TunnelGameTests::hotSwap, 100));
-        TESTS.put("rollback", new Test(TunnelGameTests::rollback, 100));
+        TESTS.put("simulate_no_side_effects", new Test(TunnelGameTests::simulateHasNoSideEffects, 100));
         TESTS.put("machine_missing", new Test(TunnelGameTests::machineMissing, 100));
         TESTS.put("nested_chain", new Test(TunnelGameTests::nestedChain, 100));
         TESTS.put("depth_limit", new Test(TunnelGameTests::depthLimit, 100));
@@ -60,20 +54,21 @@ public final class TinyTunnelsGameTests {
         TESTS.put("entry_blocked_saved_exit", new Test(EntryGameTests::blockedSavedExitFallsBack, 100));
         TESTS.put("entry_blocked_centre", new Test(EntryGameTests::blockedCentreFindsClearSpot, 100));
         TESTS.put("entry_exit_outside_room", new Test(EntryGameTests::exitOutsideRoomIgnored, 100));
-        TESTS.forEach((name, test) -> FUNCTIONS.register(name, () -> test.function()));
     }
 
     public static void register(IEventBus modEventBus) {
         if (!GameTestHooks.isGametestEnabled()) return;
-        FUNCTIONS.register(modEventBus);
-        modEventBus.addListener(TinyTunnelsGameTests::registerTests);
+        modEventBus.addListener((RegisterGameTestsEvent event) -> event.register(TinyTunnelsGameTests.class));
     }
 
-    private static void registerTests(RegisterGameTestsEvent event) {
-        Holder<TestEnvironmentDefinition<?>> environment = event.registerEnvironment(TinyTunnels.id("default"));
-        TESTS.forEach((name, test) -> event.registerTest(TinyTunnels.id(name), new FunctionGameTestInstance(
-                ResourceKey.create(Registries.TEST_FUNCTION, TinyTunnels.id(name)),
-                new TestData<>(environment, TinyTunnels.id("empty_5x5x5"), test.maxTicks(), 0, true))));
+    /** One test per entry, named {@code tinytunnels.<name>}, all in the empty 5x5x5 structure. */
+    @GameTestGenerator
+    public static Collection<TestFunction> tests() {
+        String structure = TinyTunnels.id("empty_5x5x5").toString();
+        return TESTS.entrySet().stream()
+                .map(entry -> new TestFunction(TinyTunnels.MODID, TinyTunnels.MODID + "." + entry.getKey(), structure,
+                        entry.getValue().maxTicks(), 0, true, entry.getValue().function()))
+                .toList();
     }
 
     private TinyTunnelsGameTests() {}

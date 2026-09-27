@@ -24,12 +24,12 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.transfer.EmptyResourceHandler;
-import net.neoforged.neoforge.transfer.ResourceHandler;
-import net.neoforged.neoforge.transfer.energy.EmptyEnergyHandler;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
-import net.neoforged.neoforge.transfer.item.ItemResource;
-import net.neoforged.neoforge.transfer.transaction.Transaction;
+import net.neoforged.neoforge.energy.EmptyEnergyStorage;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.wrapper.EmptyItemHandler;
 
 /**
  * Automated checks for tunnels, loading and the room shell. Each maps to a failure Compact Machines
@@ -38,7 +38,6 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
  */
 final class TunnelGameTests {
     static final BlockPos MACHINE = new BlockPos(2, 2, 2);
-    private static final ItemResource COBBLE = ItemResource.of(Items.COBBLESTONE);
 
     /** Every machine face routed through a tunnel on every wall, both directions. */
     static void faceMatrix(GameTestHelper helper) {
@@ -57,15 +56,15 @@ final class TunnelGameTests {
                 rooms.setBlock(inside, Blocks.CHEST.defaultBlockState(), Block.UPDATE_ALL);
                 String where = "face " + face.getSerializedName() + " via " + wall.getSerializedName() + " wall";
 
-                ResourceHandler<ItemResource> in = helper.getLevel().getCapability(Capabilities.Item.BLOCK, machinePos, face);
+                IItemHandler in = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, machinePos, face);
                 helper.assertTrue(in != null, "no item handler on machine " + where);
-                helper.assertValueEqual(TestRooms.insert(in, COBBLE, 1), 1, "inserted into machine " + where);
+                helper.assertValueEqual(TestRooms.insert(in, cobble(1)), 1, "inserted into machine " + where);
                 helper.assertValueEqual(count(rooms, inside), 1, "items in the chest inside, " + where);
 
-                ResourceHandler<ItemResource> out = rooms.getCapability(Capabilities.Item.BLOCK, wallPos, wall.getOpposite());
+                IItemHandler out = rooms.getCapability(Capabilities.ItemHandler.BLOCK, wallPos, wall.getOpposite());
                 helper.assertTrue(out != null, "no item handler on tunnel " + where);
                 int before = count(helper.getLevel(), machinePos.relative(face));
-                helper.assertValueEqual(TestRooms.insert(out, COBBLE, 1), 1, "inserted into tunnel " + where);
+                helper.assertValueEqual(TestRooms.insert(out, cobble(1)), 1, "inserted into tunnel " + where);
                 helper.assertValueEqual(count(helper.getLevel(), machinePos.relative(face)), before + 1, "items in the chest outside, " + where);
 
                 rooms.setBlock(inside, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
@@ -108,9 +107,9 @@ final class TunnelGameTests {
         BlockPos inside = TestRooms.addTunnel(helper, room, Direction.EAST, TestRooms.wallCenter(room.geometry(), Direction.WEST));
         ServerLevel rooms = TestRooms.rooms(helper);
         rooms.setBlock(inside, Blocks.CAULDRON.defaultBlockState(), Block.UPDATE_ALL);
-        ResourceHandler<FluidResource> fluid = helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(MACHINE), Direction.EAST);
+        IFluidHandler fluid = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(MACHINE), Direction.EAST);
         helper.assertTrue(fluid != null, "no fluid handler on the machine's east face");
-        helper.assertValueEqual(TestRooms.insert(fluid, FluidResource.of(Fluids.WATER), 1000), 1000, "water inserted");
+        helper.assertValueEqual(TestRooms.fill(fluid, new FluidStack(Fluids.WATER, 1000)), 1000, "water inserted");
         helper.assertTrue(rooms.getBlockState(inside).is(Blocks.WATER_CAULDRON), "cauldron inside should be full of water");
         helper.succeed();
     }
@@ -121,11 +120,11 @@ final class TunnelGameTests {
         Room room = TestRooms.room(helper, machine);
         TestRooms.addTunnel(helper, room, Direction.UP, TestRooms.wallCenter(room.geometry(), Direction.NORTH));
         BlockPos pos = helper.absolutePos(MACHINE);
-        helper.assertTrue(helper.getLevel().getCapability(Capabilities.Energy.BLOCK, pos, Direction.UP) == EmptyEnergyHandler.INSTANCE,
+        helper.assertTrue(helper.getLevel().getCapability(Capabilities.EnergyStorage.BLOCK, pos, Direction.UP) == EmptyEnergyStorage.INSTANCE,
                 "tunnel face with nothing behind should be the empty energy handler");
-        helper.assertTrue(helper.getLevel().getCapability(Capabilities.Item.BLOCK, pos, Direction.UP) instanceof EmptyResourceHandler<?>,
+        helper.assertTrue(helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, pos, Direction.UP) == EmptyItemHandler.INSTANCE,
                 "tunnel face with nothing behind should be the empty item handler");
-        helper.assertTrue(helper.getLevel().getCapability(Capabilities.Item.BLOCK, pos, Direction.DOWN) == null,
+        helper.assertTrue(helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, pos, Direction.DOWN) == null,
                 "a face without a tunnel should expose nothing");
         helper.succeed();
     }
@@ -135,7 +134,7 @@ final class TunnelGameTests {
         MachineHost machine = TestRooms.placeMachine(helper, MACHINE);
         Room room = TestRooms.room(helper, machine);
         AtomicBoolean notified = new AtomicBoolean();
-        BlockCapabilityCache<ResourceHandler<ItemResource>, Direction> pipe = BlockCapabilityCache.create(Capabilities.Item.BLOCK,
+        BlockCapabilityCache<IItemHandler, Direction> pipe = BlockCapabilityCache.create(Capabilities.ItemHandler.BLOCK,
                 helper.getLevel(), helper.absolutePos(MACHINE), Direction.NORTH, () -> true, () -> notified.set(true));
         helper.assertTrue(pipe.getCapability() == null, "no tunnel yet, so nothing on the north face");
 
@@ -143,9 +142,9 @@ final class TunnelGameTests {
         TestRooms.rooms(helper).setBlock(inside, Blocks.CHEST.defaultBlockState(), Block.UPDATE_ALL);
         helper.runAfterDelay(3, () -> {
             helper.assertTrue(notified.get(), "the pipe's cache was never invalidated");
-            ResourceHandler<ItemResource> handler = pipe.getCapability();
+            IItemHandler handler = pipe.getCapability();
             helper.assertTrue(handler != null, "the pipe still sees nothing after the tunnel was added");
-            helper.assertValueEqual(TestRooms.insert(handler, COBBLE, 1), 1, "inserted after the tunnel appeared");
+            helper.assertValueEqual(TestRooms.insert(handler, cobble(1)), 1, "inserted after the tunnel appeared");
             helper.assertValueEqual(count(TestRooms.rooms(helper), inside), 1, "items in the chest inside");
             helper.succeed();
         });
@@ -159,7 +158,7 @@ final class TunnelGameTests {
         ServerLevel rooms = TestRooms.rooms(helper);
         rooms.setBlock(inside, Blocks.CHEST.defaultBlockState(), Block.UPDATE_ALL);
         AtomicBoolean notified = new AtomicBoolean();
-        BlockCapabilityCache<ResourceHandler<ItemResource>, Direction> pipe = BlockCapabilityCache.create(Capabilities.Item.BLOCK,
+        BlockCapabilityCache<IItemHandler, Direction> pipe = BlockCapabilityCache.create(Capabilities.ItemHandler.BLOCK,
                 helper.getLevel(), helper.absolutePos(MACHINE), Direction.SOUTH, () -> true, () -> notified.set(true));
 
         helper.runAfterDelay(3, () -> {
@@ -167,25 +166,23 @@ final class TunnelGameTests {
             rooms.setBlock(inside, Blocks.BARREL.defaultBlockState(), Block.UPDATE_ALL);
             helper.runAfterDelay(3, () -> {
                 helper.assertTrue(notified.get(), "the pipe wasn't told the block behind the tunnel changed");
-                helper.assertValueEqual(TestRooms.insert(pipe.getCapability(), COBBLE, 1), 1, "inserted after the swap");
+                helper.assertValueEqual(TestRooms.insert(pipe.getCapability(), cobble(1)), 1, "inserted after the swap");
                 helper.assertValueEqual(count(rooms, inside), 1, "items in the barrel");
                 helper.succeed();
             });
         });
     }
 
-    /** A transfer that isn't committed leaves both sides unchanged. */
-    static void rollback(GameTestHelper helper) {
+    /** A simulated insert reports what would go in, and moves nothing on either side. */
+    static void simulateHasNoSideEffects(GameTestHelper helper) {
         MachineHost machine = TestRooms.placeMachine(helper, MACHINE);
         Room room = TestRooms.room(helper, machine);
         BlockPos inside = TestRooms.addTunnel(helper, room, Direction.WEST, TestRooms.wallCenter(room.geometry(), Direction.SOUTH));
         TestRooms.rooms(helper).setBlock(inside, Blocks.CHEST.defaultBlockState(), Block.UPDATE_ALL);
-        ResourceHandler<ItemResource> handler = helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(MACHINE), Direction.WEST);
-        try (Transaction tx = Transaction.openRoot()) {
-            helper.assertValueEqual(handler.insert(COBBLE, 5, tx), 5, "inserted inside the transaction");
-            // No commit: closing rolls it back.
-        }
-        helper.assertValueEqual(count(TestRooms.rooms(helper), inside), 0, "items in the chest after rollback");
+        IItemHandler handler = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(MACHINE), Direction.WEST);
+        ItemStack remainder = ItemHandlerHelper.insertItem(handler, cobble(5), true);
+        helper.assertValueEqual(remainder.getCount(), 0, "items left over from the simulated insert");
+        helper.assertValueEqual(count(TestRooms.rooms(helper), inside), 0, "items in the chest after the simulated insert");
         helper.succeed();
     }
 
@@ -197,9 +194,9 @@ final class TunnelGameTests {
         TestRooms.addTunnel(helper, room, Direction.NORTH, wall);
         helper.setBlock(MACHINE, Blocks.AIR);
         ServerLevel rooms = TestRooms.rooms(helper);
-        helper.assertTrue(rooms.getCapability(Capabilities.Item.BLOCK, wall, Direction.WEST) instanceof EmptyResourceHandler<?>,
+        helper.assertTrue(rooms.getCapability(Capabilities.ItemHandler.BLOCK, wall, Direction.WEST) == EmptyItemHandler.INSTANCE,
                 "tunnel of an unplaced machine should answer empty on its inward side");
-        helper.assertTrue(rooms.getCapability(Capabilities.Item.BLOCK, wall, Direction.EAST) == null,
+        helper.assertTrue(rooms.getCapability(Capabilities.ItemHandler.BLOCK, wall, Direction.EAST) == null,
                 "tunnel should expose nothing on its outer side");
         helper.succeed();
     }
@@ -207,8 +204,8 @@ final class TunnelGameTests {
     /** Machines nested three deep pass items all the way through. */
     static void nestedChain(GameTestHelper helper) {
         BlockPos chest = buildChain(helper, 3);
-        ResourceHandler<ItemResource> handler = helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(MACHINE), Direction.NORTH);
-        helper.assertValueEqual(TestRooms.insert(handler, COBBLE, 1), 1, "inserted through three nested machines");
+        IItemHandler handler = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(MACHINE), Direction.NORTH);
+        helper.assertValueEqual(TestRooms.insert(handler, cobble(1)), 1, "inserted through three nested machines");
         helper.assertValueEqual(count(TestRooms.rooms(helper), chest), 1, "items in the innermost chest");
         helper.succeed();
     }
@@ -216,9 +213,9 @@ final class TunnelGameTests {
     /** Nesting deeper than the proxy limit moves nothing and doesn't crash. */
     static void depthLimit(GameTestHelper helper) {
         BlockPos chest = buildChain(helper, 12);
-        ResourceHandler<ItemResource> handler = helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(MACHINE), Direction.NORTH);
+        IItemHandler handler = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(MACHINE), Direction.NORTH);
         helper.assertTrue(handler != null, "the outer machine should still answer");
-        helper.assertValueEqual(TestRooms.insert(handler, COBBLE, 1), 0, "inserted through twelve nested machines");
+        helper.assertValueEqual(TestRooms.insert(handler, cobble(1)), 0, "inserted through twelve nested machines");
         helper.assertValueEqual(count(TestRooms.rooms(helper), chest), 0, "items in the innermost chest");
         helper.succeed();
     }
@@ -290,6 +287,10 @@ final class TunnelGameTests {
         helper.assertFalse(data.wouldNestInItself(room.id(), GlobalPos.of(helper.getLevel().dimension(), helper.absolutePos(MACHINE.above())), roomDimension),
                 "placing next to the machine, outside any room, is fine");
         helper.succeed();
+    }
+
+    private static ItemStack cobble(int count) {
+        return new ItemStack(Items.COBBLESTONE, count);
     }
 
     private static int count(ServerLevel level, BlockPos pos) {

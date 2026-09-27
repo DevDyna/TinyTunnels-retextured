@@ -18,10 +18,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.transfer.ResourceHandler;
-import net.neoforged.neoforge.transfer.resource.Resource;
-import net.neoforged.neoforge.transfer.transaction.Transaction;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 /** Builds machines, rooms and tunnels in code, the way a player would, for GameTests. */
 final class TestRooms {
@@ -97,13 +99,14 @@ final class TestRooms {
         CapabilityUpdates.roomChanged(helper.getLevel().getServer(), current);
     }
 
-    /** Inserts and commits; returns how much went in. */
-    static <T extends Resource> int insert(ResourceHandler<T> handler, T resource, int amount) {
-        try (Transaction tx = Transaction.openRoot()) {
-            int inserted = handler.insert(resource, amount, tx);
-            tx.commit();
-            return inserted;
-        }
+    /** Inserts for real across all slots; returns how many went in. */
+    static int insert(IItemHandler handler, ItemStack stack) {
+        return stack.getCount() - ItemHandlerHelper.insertItem(handler, stack.copy(), false).getCount();
+    }
+
+    /** Fills for real; returns how much went in. */
+    static int fill(IFluidHandler handler, FluidStack stack) {
+        return handler.fill(stack, IFluidHandler.FluidAction.EXECUTE);
     }
 
     private TestRooms() {}

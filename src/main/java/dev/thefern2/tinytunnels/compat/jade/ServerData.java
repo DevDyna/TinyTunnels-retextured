@@ -7,7 +7,7 @@ import dev.thefern2.tinytunnels.room.RoomData;
 import dev.thefern2.tinytunnels.tunnel.RedstoneTunnelWallBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import snownee.jade.api.BlockAccessor;
@@ -40,14 +40,14 @@ enum ServerData implements IServerDataProvider<BlockAccessor> {
         }
     };
 
-    private final Identifier uid;
+    private final ResourceLocation uid;
 
-    ServerData(Identifier uid) {
+    ServerData(ResourceLocation uid) {
         this.uid = uid;
     }
 
     @Override
-    public Identifier getUid() {
+    public ResourceLocation getUid() {
         return uid;
     }
 }

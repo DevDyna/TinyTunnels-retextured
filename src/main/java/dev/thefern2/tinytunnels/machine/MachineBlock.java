@@ -32,7 +32,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.minecraft.world.level.redstone.Orientation;
 
 public class MachineBlock extends Block implements EntityBlock {
     public static final MapCodec<MachineBlock> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
@@ -128,15 +127,15 @@ public class MachineBlock extends Block implements EntityBlock {
             GlobalPos here = GlobalPos.of(level.dimension(), context.getClickedPos());
             if (room != null && RoomData.get(level.getServer()).wouldNestInItself(room.id(), here, RoomDimension.key(level.getServer()))) {
                 if (context.getPlayer() != null) {
-                    context.getPlayer().sendOverlayMessage(Component.translatable("message.tinytunnels.machine.inside_itself"));
+                    context.getPlayer().displayClientMessage(Component.translatable("message.tinytunnels.machine.inside_itself"), true);
                 }
                 return null;
             }
             if (room != null && MachineCore.isHostedElsewhere(level.getServer(), room, here)) {
                 if (context.getPlayer() != null) {
                     GlobalPos host = room.host().orElseThrow();
-                    context.getPlayer().sendOverlayMessage(Component.translatable("message.tinytunnels.machine.already_placed",
-                            host.pos().toShortString(), host.dimension().identifier().toString()));
+                    context.getPlayer().displayClientMessage(Component.translatable("message.tinytunnels.machine.already_placed",
+                            host.pos().toShortString(), host.dimension().location().toString()), true);
                 }
                 return null;
             }
@@ -172,7 +171,7 @@ public class MachineBlock extends Block implements EntityBlock {
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation, boolean movedByPiston) {
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
         if (!level.isClientSide() && isSignalSource(state)) level.scheduleTick(pos, this, 1);
     }
 
@@ -182,11 +181,16 @@ public class MachineBlock extends Block implements EntityBlock {
     }
 
     @Override
-    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
-        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
-        // Blocks the machine strongly powered may still feed dust around them.
-        for (Direction face : Direction.values()) {
-            if (hasRedstone(state, face)) level.updateNeighborsAtExceptFromFacing(pos.relative(face), this, face.getOpposite(), null);
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        boolean removed = !state.is(newState.getBlock());
+        // Before super: that's where the block entity goes away.
+        if (removed && level.getBlockEntity(pos) instanceof MachineHost machine) machine.core().preRemoveSideEffects(pos);
+        super.onRemove(state, level, pos, newState, movedByPiston);
+        if (removed && level instanceof ServerLevel server) {
+            // Blocks the machine strongly powered may still feed dust around them.
+            for (Direction face : Direction.values()) {
+                if (hasRedstone(state, face)) server.updateNeighborsAtExceptFromFacing(pos.relative(face), this, face.getOpposite());
+            }
         }
     }
 

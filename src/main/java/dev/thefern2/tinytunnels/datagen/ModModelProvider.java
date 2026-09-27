@@ -12,77 +12,73 @@ import dev.thefern2.tinytunnels.registry.ModItems;
 import dev.thefern2.tinytunnels.room.RedstoneMode;
 import dev.thefern2.tinytunnels.tunnel.RedstoneTunnelWallBlock;
 import dev.thefern2.tinytunnels.tunnel.TunnelWallBlock;
-import net.minecraft.client.data.models.BlockModelGenerators;
-import net.minecraft.client.data.models.ItemModelGenerators;
-import net.minecraft.client.data.models.ModelProvider;
-import net.minecraft.client.data.models.blockstates.MultiPartGenerator;
-import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
-import net.minecraft.client.data.models.blockstates.PropertyDispatch;
-import net.minecraft.client.data.models.model.ModelTemplates;
-import net.minecraft.client.data.models.model.TextureMapping;
 import net.minecraft.core.Direction;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.Identifier;
+import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
+import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
+import net.neoforged.neoforge.client.model.generators.ModelFile;
+import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
-public class ModModelProvider extends ModelProvider {
-    public ModModelProvider(PackOutput output) {
-        super(output, TinyTunnels.MODID);
+/** Block states plus block and item models. On 1.21.1 one provider covers both; item models go through {@link #itemModels()}. */
+public class ModModelProvider extends BlockStateProvider {
+    public ModModelProvider(PackOutput output, ExistingFileHelper existingFileHelper) {
+        super(output, TinyTunnels.MODID, existingFileHelper);
     }
 
     @Override
-    protected void registerModels(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+    protected void registerStatesAndModels() {
         // Machines: the plain cube, plus a port-with-letter overlay on every face that has a tunnel,
         // blue for tunnels and red for redstone tunnels. Overlay models are hand-written
         // (models/block/machine_port_<face>.json, machine_redstone_port_<face>[_on].json).
         ModBlocks.MACHINES.values().forEach(holder -> {
             MachineBlock block = holder.get();
-            Identifier base = ModelTemplates.CUBE_ALL.create(block, TextureMapping.cube(block), blockModels.modelOutput);
-            MultiPartGenerator parts = MultiPartGenerator.multiPart(block).with(BlockModelGenerators.plainVariant(base));
+            ModelFile base = cubeAll(block);
+            MultiPartBlockStateBuilder parts = getMultipartBuilder(block).part().modelFile(base).addModel().end();
             for (var face : MachineBlock.PORTS.entrySet()) {
                 String name = face.getKey().getSerializedName();
-                parts = parts.with(BlockModelGenerators.condition(face.getValue(), PortKind.TUNNEL),
-                                BlockModelGenerators.plainVariant(TinyTunnels.id("block/machine_port_" + name)))
-                        .with(BlockModelGenerators.condition(face.getValue(), PortKind.REDSTONE),
-                                BlockModelGenerators.plainVariant(TinyTunnels.id("block/machine_redstone_port_" + name)))
-                        .with(BlockModelGenerators.condition(face.getValue(), PortKind.REDSTONE_ON),
-                                BlockModelGenerators.plainVariant(TinyTunnels.id("block/machine_redstone_port_" + name + "_on")));
+                parts.part().modelFile(port("block/machine_port_" + name)).addModel().condition(face.getValue(), PortKind.TUNNEL).end()
+                        .part().modelFile(port("block/machine_redstone_port_" + name)).addModel().condition(face.getValue(), PortKind.REDSTONE).end()
+                        .part().modelFile(port("block/machine_redstone_port_" + name + "_on")).addModel().condition(face.getValue(), PortKind.REDSTONE_ON).end();
             }
-            blockModels.blockStateOutput.accept(parts);
-            blockModels.registerSimpleItemModel(block, base);
+            simpleBlockItem(block, base);
         });
-        blockModels.createTrivialCube(ModBlocks.ROOM_WALL.get());
+        simpleBlockWithItem(ModBlocks.ROOM_WALL.get(), cubeAll(ModBlocks.ROOM_WALL.get()));
+
         // One texture per mapped face (a letter on the port), so the mapping is visible. The inward
         // property doesn't change the look.
-        Map<Direction, Identifier> tunnelModels = new EnumMap<>(Direction.class);
+        Map<Direction, ModelFile> tunnelModels = new EnumMap<>(Direction.class);
         for (Direction face : Direction.values()) {
-            String suffix = "_" + face.getSerializedName();
-            tunnelModels.put(face, ModelTemplates.CUBE_ALL.createWithSuffix(ModBlocks.TUNNEL_WALL.get(), suffix,
-                    TextureMapping.cube(TextureMapping.getBlockTexture(ModBlocks.TUNNEL_WALL.get(), suffix)), blockModels.modelOutput));
+            String name = "tunnel_wall_" + face.getSerializedName();
+            tunnelModels.put(face, models().cubeAll(name, modLoc("block/" + name)));
         }
-        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(ModBlocks.TUNNEL_WALL.get()).with(
-                PropertyDispatch.initial(TunnelWallBlock.FACE, TunnelWallBlock.INWARD)
-                        .generate((face, inward) -> BlockModelGenerators.plainVariant(tunnelModels.get(face)))));
+        getVariantBuilder(ModBlocks.TUNNEL_WALL.get()).forAllStates(state ->
+                ConfiguredModel.builder().modelFile(tunnelModels.get(state.getValue(TunnelWallBlock.FACE))).build());
 
         // Redstone tunnels: a red port with the face letter, per direction (corner marks on "out"),
         // brighter while carrying a signal.
-        Map<String, Identifier> redstoneModels = new HashMap<>();
+        Map<String, ModelFile> redstoneModels = new HashMap<>();
         for (Direction face : Direction.values()) {
             for (RedstoneMode mode : RedstoneMode.values()) {
                 for (boolean powered : new boolean[] {false, true}) {
-                    String suffix = redstoneSuffix(face, mode, powered);
-                    redstoneModels.put(suffix, ModelTemplates.CUBE_ALL.createWithSuffix(ModBlocks.REDSTONE_TUNNEL_WALL.get(), suffix,
-                            TextureMapping.cube(TextureMapping.getBlockTexture(ModBlocks.REDSTONE_TUNNEL_WALL.get(), suffix)), blockModels.modelOutput));
+                    String name = "redstone_tunnel_wall" + redstoneSuffix(face, mode, powered);
+                    redstoneModels.put(name, models().cubeAll(name, modLoc("block/" + name)));
                 }
             }
         }
-        blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(ModBlocks.REDSTONE_TUNNEL_WALL.get()).with(
-                PropertyDispatch.initial(RedstoneTunnelWallBlock.FACE, RedstoneTunnelWallBlock.INWARD, RedstoneTunnelWallBlock.MODE, RedstoneTunnelWallBlock.POWERED)
-                        .generate((face, inward, mode, powered) -> BlockModelGenerators.plainVariant(redstoneModels.get(redstoneSuffix(face, mode, powered))))));
+        getVariantBuilder(ModBlocks.REDSTONE_TUNNEL_WALL.get()).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(redstoneModels.get("redstone_tunnel_wall" + redstoneSuffix(state.getValue(RedstoneTunnelWallBlock.FACE),
+                        state.getValue(RedstoneTunnelWallBlock.MODE), state.getValue(RedstoneTunnelWallBlock.POWERED))))
+                .build());
 
-        itemModels.generateFlatItem(ModItems.SHRINKER.get(), ModelTemplates.FLAT_ITEM);
-        itemModels.generateFlatItem(ModItems.REDSTONE_TUNNEL.get(), ModelTemplates.FLAT_ITEM);
-        itemModels.generateFlatItem(ModItems.TUNNEL.get(), ModelTemplates.FLAT_ITEM);
-        itemModels.generateFlatItem(ModItems.TUNNEL_WRENCH.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
+        itemModels().basicItem(ModItems.SHRINKER.get());
+        itemModels().basicItem(ModItems.REDSTONE_TUNNEL.get());
+        itemModels().basicItem(ModItems.TUNNEL.get());
+        itemModels().handheldItem(ModItems.TUNNEL_WRENCH.get());
+    }
+
+    private ModelFile port(String path) {
+        return models().getExistingFile(modLoc(path));
     }
 
     private static String redstoneSuffix(Direction face, RedstoneMode mode, boolean powered) {

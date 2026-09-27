@@ -6,6 +6,7 @@ One line per item; details are in `docs/todo/`. Items outside the phase plan (`d
 - Able to duplicate rooms, say you make a redstone clock you should be able to dupe room
 - Spawning on blocks, how to safely spawin inside a machine without getting stuck?
     - Save position per player on exiting?
+- How to pick up rooms in creative?
 
 ## Open
 

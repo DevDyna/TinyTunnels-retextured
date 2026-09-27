@@ -76,7 +76,7 @@ public final class RedstoneTunnels {
      */
     static void notifyEmitter(ServerLevel level, BlockPos pos, Direction side, Block block) {
         level.updateNeighborsAt(pos, block);
-        level.updateNeighborsAtExceptFromFacing(pos.relative(side), block, side.getOpposite(), null);
+        level.updateNeighborsAtExceptFromFacing(pos.relative(side), block, side.getOpposite());
     }
 
     // Reading
@@ -195,7 +195,7 @@ public final class RedstoneTunnels {
         RoomData.get(rooms.getServer()).setRedstoneMode(room.id(), face, mode);
         tunnelChanged(rooms.getServer(), room.id(), face);
         rooms.playSound(null, pos, SoundEvents.COMPARATOR_CLICK, SoundSource.BLOCKS, 0.3f, mode == RedstoneMode.IN ? 0.5f : 0.55f);
-        player.sendOverlayMessage(modeMessage(mode, face));
+        player.displayClientMessage(modeMessage(mode, face), true);
     }
 
     static Component modeMessage(RedstoneMode mode, Direction face) {

@@ -21,7 +21,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -35,7 +35,6 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
-import net.neoforged.neoforge.transfer.item.ItemResource;
 
 /**
  * Redstone tunnels: signals in and out on every face, analog strength, direction changes, loops,
@@ -168,15 +167,15 @@ final class RedstoneGameTests {
         BlockPos chest = TestRooms.addTunnel(helper, room, Direction.DOWN, TestRooms.wallCenter(room.geometry(), Direction.SOUTH));
         rooms.setBlock(chest, Blocks.CHEST.defaultBlockState(), Block.UPDATE_ALL);
 
-        helper.assertTrue(helper.getLevel().getCapability(Capabilities.Item.BLOCK, machinePos, Direction.UP) == null,
+        helper.assertTrue(helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, machinePos, Direction.UP) == null,
                 "the machine's redstone face should expose no items");
-        helper.assertTrue(helper.getLevel().getCapability(Capabilities.Energy.BLOCK, machinePos, Direction.UP) == null,
+        helper.assertTrue(helper.getLevel().getCapability(Capabilities.EnergyStorage.BLOCK, machinePos, Direction.UP) == null,
                 "the machine's redstone face should expose no energy");
-        helper.assertTrue(rooms.getCapability(Capabilities.Item.BLOCK, redstoneWall, Direction.SOUTH) == null,
+        helper.assertTrue(rooms.getCapability(Capabilities.ItemHandler.BLOCK, redstoneWall, Direction.SOUTH) == null,
                 "the redstone tunnel should expose no items inside");
-        var items = helper.getLevel().getCapability(Capabilities.Item.BLOCK, machinePos, Direction.DOWN);
+        var items = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, machinePos, Direction.DOWN);
         helper.assertTrue(items != null, "the item tunnel face should still answer");
-        helper.assertValueEqual(TestRooms.insert(items, ItemResource.of(Items.COBBLESTONE), 1), 1, "inserted through the item tunnel");
+        helper.assertValueEqual(TestRooms.insert(items, new ItemStack(Items.COBBLESTONE)), 1, "inserted through the item tunnel");
         helper.succeed();
     }
 
@@ -335,9 +334,9 @@ final class RedstoneGameTests {
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
         var state = level.getBlockState(pos);
         ItemStack stack = player.getItemInHand(InteractionHand.MAIN_HAND);
-        InteractionResult result = state.useItemOn(stack, level, player, InteractionHand.MAIN_HAND, hit);
+        ItemInteractionResult result = state.useItemOn(stack, level, player, InteractionHand.MAIN_HAND, hit);
         if (result.consumesAction()) return;
-        if (result instanceof InteractionResult.TryEmptyHandInteraction && state.useWithoutItem(level, player, hit).consumesAction()) return;
+        if (result == ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION && state.useWithoutItem(level, player, hit).consumesAction()) return;
         stack.useOn(new UseOnContext(player, InteractionHand.MAIN_HAND, hit));
     }
 

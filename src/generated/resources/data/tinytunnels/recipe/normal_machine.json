@@ -2,8 +2,12 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "M": "#c:ingots/gold",
-    "R": "#c:dusts/redstone"
+    "M": {
+      "tag": "c:ingots/gold"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
+    }
   },
   "pattern": [
     "MMM",
@@ -11,6 +15,7 @@
     "MMM"
   ],
   "result": {
+    "count": 1,
     "id": "tinytunnels:normal_machine"
   }
 }

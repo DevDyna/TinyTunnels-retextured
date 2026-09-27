@@ -60,14 +60,14 @@ public final class TunnelWrenching {
         Direction face = state.getValue(TunnelWallBlock.FACE);
         Direction next = room.nextFreeFace(face);
         if (next == null) {
-            player.sendOverlayMessage(Component.translatable("message.tinytunnels.tunnel.no_free_face"));
+            player.displayClientMessage(Component.translatable("message.tinytunnels.tunnel.no_free_face"), true);
             return;
         }
         ShellProtection.edit(() -> rooms.setBlock(pos, state.setValue(TunnelWallBlock.FACE, next), Block.UPDATE_ALL));
         data.removeTunnel(room.id(), face);
         data.setTunnel(room.id(), next, pos);
         CapabilityUpdates.roomChanged(rooms.getServer(), room);
-        player.sendOverlayMessage(Component.translatable("message.tinytunnels.tunnel.mapped", TunnelWallBlock.faceName(next)));
+        player.displayClientMessage(Component.translatable("message.tinytunnels.tunnel.mapped", TunnelWallBlock.faceName(next)), true);
     }
 
     private static void remove(ServerLevel rooms, BlockPos pos, BlockState state, Player player) {
@@ -82,7 +82,7 @@ public final class TunnelWrenching {
             ItemStack tunnel = new ItemStack(ModItems.TUNNEL.get());
             if (!player.getInventory().add(tunnel)) player.drop(tunnel, false);
         }
-        player.sendOverlayMessage(Component.translatable("message.tinytunnels.tunnel.removed"));
+        player.displayClientMessage(Component.translatable("message.tinytunnels.tunnel.removed"), true);
     }
 
     private static void cycleRedstone(ServerLevel rooms, BlockPos pos, BlockState state, Player player) {
@@ -92,7 +92,7 @@ public final class TunnelWrenching {
         Direction face = state.getValue(RedstoneTunnelWallBlock.FACE);
         Direction next = room.nextFreeFace(face);
         if (next == null) {
-            player.sendOverlayMessage(Component.translatable("message.tinytunnels.tunnel.no_free_face"));
+            player.displayClientMessage(Component.translatable("message.tinytunnels.tunnel.no_free_face"), true);
             return;
         }
         RedstoneMode mode = room.redstone().get(face).mode();
@@ -103,7 +103,7 @@ public final class TunnelWrenching {
         // The old face stops emitting; the new one starts from 0 and reads again.
         RedstoneTunnels.updateMachine(rooms.getServer(), room.id(), face);
         RedstoneTunnels.tunnelChanged(rooms.getServer(), room.id(), next);
-        player.sendOverlayMessage(RedstoneTunnels.modeMessage(mode, next));
+        player.displayClientMessage(RedstoneTunnels.modeMessage(mode, next), true);
     }
 
     private static void removeRedstone(ServerLevel rooms, BlockPos pos, BlockState state, Player player) {
@@ -119,7 +119,7 @@ public final class TunnelWrenching {
             ItemStack tunnel = new ItemStack(ModItems.REDSTONE_TUNNEL.get());
             if (!player.getInventory().add(tunnel)) player.drop(tunnel, false);
         }
-        player.sendOverlayMessage(Component.translatable("message.tinytunnels.tunnel.removed"));
+        player.displayClientMessage(Component.translatable("message.tinytunnels.tunnel.removed"), true);
     }
 
     /** The room this redstone tunnel belongs to, if the room still maps its face to this position. */

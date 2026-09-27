@@ -3,6 +3,7 @@ package dev.thefern2.tinytunnels.teleport;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import dev.thefern2.tinytunnels.Config;
@@ -14,7 +15,7 @@ import dev.thefern2.tinytunnels.room.RoomBuilder;
 import dev.thefern2.tinytunnels.room.RoomData;
 import dev.thefern2.tinytunnels.room.RoomDimension;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -22,8 +23,6 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.level.portal.TeleportTransition;
-import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -37,7 +36,7 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
  */
 @EventBusSubscriber(modid = TinyTunnels.MODID)
 public final class RoomTeleporter {
-    private static final Identifier SHRINK_MODIFIER = TinyTunnels.id("shrink");
+    private static final ResourceLocation SHRINK_MODIFIER = TinyTunnels.id("shrink");
     private static final double MIN_SCALE = 0.0625;
 
     private static final Map<UUID, PendingEnter> PENDING = new HashMap<>();
@@ -68,32 +67,31 @@ public final class RoomTeleporter {
 
     /** Returns to where the player last entered from. With nowhere to go back to, sends them to world spawn. */
     public static void exit(ServerPlayer player) {
-        MinecraftServer server = player.level().getServer();
+        MinecraftServer server = player.getServer();
         // Where they stand now is a spot someone fits; the next entry to this room starts there.
-        RoomEntry.rememberExit(player.level(), player.position(), player.getYRot(), player.getXRot());
+        RoomEntry.rememberExit(player.serverLevel(), player.position(), player.getYRot(), player.getXRot());
         ReturnStack stack = player.getData(ModAttachments.RETURN_STACK);
         ReturnPoint point = stack.peek().orElse(null);
         player.setData(ModAttachments.RETURN_STACK, stack.pop());
 
         ServerLevel target = point == null ? null : server.getLevel(point.dimension());
         if (point != null && target != null) {
-            player.teleport(new TeleportTransition(target, point.pos(), Vec3.ZERO, point.yRot(), point.xRot(), TeleportTransition.DO_NOTHING));
+            teleport(player, target, point.pos(), point.yRot(), point.xRot());
             return;
         }
 
-        LevelData.RespawnData spawn = server.overworld().getRespawnData();
-        ServerLevel spawnLevel = server.getLevel(spawn.dimension());
-        if (spawnLevel == null) spawnLevel = server.overworld();
-        player.teleport(new TeleportTransition(spawnLevel, spawn.pos().getBottomCenter(), Vec3.ZERO, spawn.yaw(), spawn.pitch(), TeleportTransition.DO_NOTHING));
-        player.sendOverlayMessage(Component.translatable("message.tinytunnels.exit.no_return"));
+        // 1.21.1 has one world spawn, always in the overworld.
+        ServerLevel overworld = server.overworld();
+        teleport(player, overworld, overworld.getSharedSpawnPos().getBottomCenter(), overworld.getSharedSpawnAngle(), 0);
+        player.displayClientMessage(Component.translatable("message.tinytunnels.exit.no_return"), true);
     }
 
     private static void teleportIn(ServerPlayer player, UUID roomId) {
-        MinecraftServer server = player.level().getServer();
+        MinecraftServer server = player.getServer();
         Room room = RoomData.get(server).room(roomId).orElse(null);
         ServerLevel rooms = RoomDimension.getRoomLevel(server);
         if (room == null || rooms == null) {
-            player.sendOverlayMessage(Component.translatable("message.tinytunnels.enter.no_room"));
+            player.displayClientMessage(Component.translatable("message.tinytunnels.enter.no_room"), true);
             return;
         }
 
@@ -103,9 +101,14 @@ public final class RoomTeleporter {
         EntryPoint entry = RoomEntry.find(rooms, room, player.getDimensions(Pose.STANDING), player.getYRot(), player.getXRot());
         ReturnStack stack = player.getData(ModAttachments.RETURN_STACK);
         player.setData(ModAttachments.RETURN_STACK, stack.push(ReturnPoint.of(player)));
-        if (player.teleport(new TeleportTransition(rooms, entry.pos(), Vec3.ZERO, entry.yRot(), entry.xRot(), TeleportTransition.DO_NOTHING)) == null) {
+        if (!teleport(player, rooms, entry.pos(), entry.yRot(), entry.xRot())) {
             player.setData(ModAttachments.RETURN_STACK, stack);
         }
+    }
+
+    /** The only place players are moved between levels. Returns false if the teleport was refused. */
+    public static boolean teleport(ServerPlayer player, ServerLevel level, Vec3 pos, float yRot, float xRot) {
+        return player.teleportTo(level, pos.x, pos.y, pos.z, Set.of(), yRot, xRot);
     }
 
     @SubscribeEvent

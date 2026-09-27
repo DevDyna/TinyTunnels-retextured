@@ -21,12 +21,14 @@ import dev.thefern2.tinytunnels.TinyTunnels;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraft.world.level.saveddata.SavedDataType;
 
 /** Every room on the server. The only place room state is changed; every change marks the data dirty. */
 public class RoomData extends SavedData {
@@ -35,7 +37,8 @@ public class RoomData extends SavedData {
             Codec.INT.fieldOf("next_grid_index").forGetter(data -> data.nextGridIndex)
     ).apply(i, RoomData::new));
 
-    public static final SavedDataType<RoomData> TYPE = new SavedDataType<>(TinyTunnels.id("rooms"), RoomData::new, CODEC);
+    private static final SavedData.Factory<RoomData> FACTORY = new SavedData.Factory<>(RoomData::new, RoomData::load, null);
+    private static final String FILE_NAME = TinyTunnels.MODID + "_rooms";
 
     private static final int MAX_NESTING = 32;
 
@@ -51,7 +54,21 @@ public class RoomData extends SavedData {
     }
 
     public static RoomData get(MinecraftServer server) {
-        return server.getDataStorage().computeIfAbsent(TYPE);
+        return server.overworld().getDataStorage().computeIfAbsent(FACTORY, FILE_NAME);
+    }
+
+    private static RoomData load(CompoundTag tag, HolderLookup.Provider registries) {
+        return CODEC.parse(registries.createSerializationContext(NbtOps.INSTANCE), tag)
+                .resultOrPartial(error -> TinyTunnels.LOGGER.error("Couldn't load rooms: {}", error))
+                .orElseGet(RoomData::new);
+    }
+
+    @Override
+    public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
+        if (CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), this).getOrThrow() instanceof CompoundTag encoded) {
+            tag.merge(encoded);
+        }
+        return tag;
     }
 
     public Collection<Room> rooms() {

@@ -6,6 +6,9 @@
 
 # The license for you mod. This is mandatory metadata and allows for easier comprehension of your redistributive properties.
 # Review your options at https://choosealicense.com/. All rights reserved is the default copyright stance, and is thus the default here.
+modLoader="javafml" #mandatory
+loaderVersion="${loader_version_range}" #mandatory
+
 license="${mod_license}"
 
 # A URL to refer people to when problems occur with this mod
@@ -63,7 +66,7 @@ Compact rooms inside a block, with working item, fluid and energy tunnels.
     # Optional field describing why the dependency is required or why it is incompatible
     # reason="..."
     # The version range of the dependency
-    versionRange="[${neo_version},)" #mandatory
+    versionRange="${neo_version_range}" #mandatory
     # An ordering relationship for the dependency.
     # BEFORE - This mod is loaded BEFORE the dependency
     # AFTER - This mod is loaded AFTER the dependency

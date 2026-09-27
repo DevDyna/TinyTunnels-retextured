@@ -2,9 +2,15 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "N": "#c:ingots/netherite",
-    "O": "#c:obsidians",
-    "S": "#c:nether_stars"
+    "N": {
+      "tag": "c:ingots/netherite"
+    },
+    "O": {
+      "tag": "c:obsidians"
+    },
+    "S": {
+      "tag": "c:nether_stars"
+    }
   },
   "pattern": [
     "NON",
@@ -12,6 +18,7 @@
     "NON"
   ],
   "result": {
+    "count": 1,
     "id": "tinytunnels:maximum_machine"
   }
 }

@@ -11,7 +11,6 @@ import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -26,7 +25,7 @@ public class ModBlockLootProvider extends BlockLootSubProvider {
         // The dropped machine keeps its room.
         ModBlocks.MACHINES.values().forEach(block -> add(block.get(), LootTable.lootTable().withPool(applyExplosionCondition(block.get(),
                 LootPool.lootPool().setRolls(ConstantValue.exactly(1f)).add(LootItem.lootTableItem(block.get())
-                        .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
+                        .apply(CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY)
                                 .include(ModDataComponents.ROOM_ID.get())))))));
     }
 

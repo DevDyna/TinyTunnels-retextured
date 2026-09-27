@@ -4,11 +4,11 @@ import org.jspecify.annotations.Nullable;
 
 import dev.thefern2.tinytunnels.TinyTunnels;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.gametest.framework.GameTestServer;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.server.loading.ServerModLoader;
 
 /**
  * The void dimension that holds every room. Defined by datapack JSON under {@code data/tinytunnels/dimension}.
@@ -21,7 +21,7 @@ public final class RoomDimension {
 
     public static @Nullable ServerLevel getRoomLevel(MinecraftServer server) {
         ServerLevel rooms = server.getLevel(ROOM_DIM);
-        if (rooms == null && ServerModLoader.isGameTestServer()) return server.overworld();
+        if (rooms == null && server instanceof GameTestServer) return server.overworld();
         return rooms;
     }
 

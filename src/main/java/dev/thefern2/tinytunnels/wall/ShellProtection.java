@@ -15,7 +15,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
+import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
@@ -48,7 +48,7 @@ public final class ShellProtection {
     }
 
     @SubscribeEvent
-    static void onBreak(BreakBlockEvent event) {
+    static void onBreak(BlockEvent.BreakEvent event) {
         if (isShellBlock(event.getState())) event.setCanceled(true);
     }
 

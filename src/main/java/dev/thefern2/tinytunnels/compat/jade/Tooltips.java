@@ -11,7 +11,7 @@ import dev.thefern2.tinytunnels.tunnel.TunnelWallBlock;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
@@ -41,9 +41,9 @@ enum Tooltips implements IBlockComponentProvider {
                     tunnels.add(letter);
                 } else if (MachineBlock.hasRedstone(state, face)) {
                     String side = face.getSerializedName();
-                    redstone.add(data.getString("redstone_" + side)
-                            .map(mode -> letter + " " + mode + " " + data.getIntOr("power_" + side, 0))
-                            .orElse(letter));
+                    redstone.add(data.contains("redstone_" + side)
+                            ? letter + " " + data.getString("redstone_" + side) + " " + data.getInt("power_" + side)
+                            : letter);
                 }
             }
             if (!tunnels.isEmpty()) tooltip.add(Component.translatable("jade.tinytunnels.tunnels", String.join(" ", tunnels)));
@@ -64,20 +64,21 @@ enum Tooltips implements IBlockComponentProvider {
             BlockState state = accessor.getBlockState();
             Component side = faceName(state.getValue(RedstoneTunnelWallBlock.FACE));
             String mode = state.getValue(RedstoneTunnelWallBlock.MODE).getSerializedName();
-            tooltip.add(accessor.getServerData().getInt("power")
-                    .map(power -> Component.translatable("jade.tinytunnels.redstone_tunnel", side, mode, power))
-                    .orElseGet(() -> Component.translatable("jade.tinytunnels.redstone_tunnel.no_power", side, mode)));
+            CompoundTag data = accessor.getServerData();
+            tooltip.add(data.contains("power")
+                    ? Component.translatable("jade.tinytunnels.redstone_tunnel", side, mode, data.getInt("power"))
+                    : Component.translatable("jade.tinytunnels.redstone_tunnel.no_power", side, mode));
         }
     };
 
-    private final Identifier uid;
+    private final ResourceLocation uid;
 
-    Tooltips(Identifier uid) {
+    Tooltips(ResourceLocation uid) {
         this.uid = uid;
     }
 
     @Override
-    public Identifier getUid() {
+    public ResourceLocation getUid() {
         return uid;
     }
 

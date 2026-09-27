@@ -19,15 +19,12 @@ import dev.thefern2.tinytunnels.tunnel.TransferKind;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
-import net.minecraft.core.UUIDUtil;
-import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 
 /**
  * The machine logic shared by every {@link MachineHost}: which room it's bound to (the room ID
@@ -136,7 +133,7 @@ public final class MachineCore {
         Level level = owner.getLevel();
         if (level == null || level.isClientSide()) return;
         TinyTunnels.LOGGER.info("[TT-DEBUG] machine {} {} in {} room={}", event, owner.getBlockPos().toShortString(),
-                level.dimension().identifier(), roomId == null ? "none" : roomId.toString().substring(0, 8));
+                level.dimension().location(), roomId == null ? "none" : roomId.toString().substring(0, 8));
     }
 
     /** True if another loaded (or not yet loaded) machine is the live host of this room. */
@@ -150,6 +147,7 @@ public final class MachineCore {
         return hostLevel.getBlockEntity(host.pos()) instanceof MachineHost other && room.id().equals(other.getRoomId());
     }
 
+    /** Called from {@link MachineBlock#onRemove} while the block entity is still there. */
     public void preRemoveSideEffects(BlockPos pos) {
         if (roomId != null && owner.getLevel() instanceof ServerLevel server) {
             RoomData data = RoomData.get(server.getServer());
@@ -161,16 +159,16 @@ public final class MachineCore {
         }
     }
 
-    public void load(ValueInput input) {
-        roomId = input.read("room", UUIDUtil.CODEC).orElse(null);
+    public void load(CompoundTag tag) {
+        roomId = tag.hasUUID("room") ? tag.getUUID("room") : null;
     }
 
-    public void save(ValueOutput output) {
-        output.storeNullable("room", UUIDUtil.CODEC, roomId);
+    public void save(CompoundTag tag) {
+        if (roomId != null) tag.putUUID("room", roomId);
     }
 
-    public void applyImplicitComponents(DataComponentGetter components) {
-        UUID fromItem = components.get(ModDataComponents.ROOM_ID.get());
+    /** The room ID from the machine item, if it carries one. */
+    public void applyImplicitRoom(@Nullable UUID fromItem) {
         if (fromItem != null) roomId = fromItem;
     }
 

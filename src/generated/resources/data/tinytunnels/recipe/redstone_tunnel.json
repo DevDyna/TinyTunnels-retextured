@@ -2,10 +2,15 @@
   "type": "minecraft:crafting_shapeless",
   "category": "redstone",
   "ingredients": [
-    "tinytunnels:tunnel",
-    "minecraft:comparator"
+    {
+      "item": "tinytunnels:tunnel"
+    },
+    {
+      "item": "minecraft:comparator"
+    }
   ],
   "result": {
+    "count": 1,
     "id": "tinytunnels:redstone_tunnel"
   }
 }

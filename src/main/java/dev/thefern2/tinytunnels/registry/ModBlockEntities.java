@@ -14,13 +14,13 @@ public final class ModBlockEntities {
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, TinyTunnels.MODID);
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MachineBlockEntity>> MACHINE = BLOCK_ENTITIES.register("machine",
-            () -> new BlockEntityType<>(MachineBlockEntity::new, ModBlocks.MACHINES.values().stream().map(b -> (Block) b.get()).toArray(Block[]::new)));
+            () -> BlockEntityType.Builder.of(MachineBlockEntity::new, ModBlocks.MACHINES.values().stream().map(b -> (Block) b.get()).toArray(Block[]::new)).build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TunnelBlockEntity>> TUNNEL = BLOCK_ENTITIES.register("tunnel",
-            () -> new BlockEntityType<>(TunnelBlockEntity::new, ModBlocks.TUNNEL_WALL.get()));
+            () -> BlockEntityType.Builder.of(TunnelBlockEntity::new, ModBlocks.TUNNEL_WALL.get()).build(null));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RedstoneTunnelBlockEntity>> REDSTONE_TUNNEL = BLOCK_ENTITIES.register("redstone_tunnel",
-            () -> new BlockEntityType<>(RedstoneTunnelBlockEntity::new, ModBlocks.REDSTONE_TUNNEL_WALL.get()));
+            () -> BlockEntityType.Builder.of(RedstoneTunnelBlockEntity::new, ModBlocks.REDSTONE_TUNNEL_WALL.get()).build(null));
 
     private ModBlockEntities() {}
 }

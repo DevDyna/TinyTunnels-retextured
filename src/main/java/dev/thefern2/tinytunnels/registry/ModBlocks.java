@@ -26,7 +26,7 @@ public final class ModBlocks {
 
     static {
         for (MachineSize size : MachineSize.values()) {
-            MACHINES.put(size, BLOCKS.registerBlock(size.blockId(), p -> new MachineBlock(size, p), p -> p
+            MACHINES.put(size, BLOCKS.registerBlock(size.blockId(), p -> new MachineBlock(size, p), BlockBehaviour.Properties.of()
                     .mapColor(MapColor.METAL)
                     .sound(SoundType.METAL)
                     // Blast-proof: losing the machine item would strand its room.
@@ -37,12 +37,12 @@ public final class ModBlocks {
     }
 
     // Room walls are unbreakable, drop nothing and can't be pushed; the tunnel wall replaces one of them.
-    public static final DeferredBlock<RoomWallBlock> ROOM_WALL = BLOCKS.registerBlock("room_wall", RoomWallBlock::new, ModBlocks::wallProperties);
-    public static final DeferredBlock<TunnelWallBlock> TUNNEL_WALL = BLOCKS.registerBlock("tunnel_wall", TunnelWallBlock::new, ModBlocks::wallProperties);
-    public static final DeferredBlock<RedstoneTunnelWallBlock> REDSTONE_TUNNEL_WALL = BLOCKS.registerBlock("redstone_tunnel_wall", RedstoneTunnelWallBlock::new, ModBlocks::wallProperties);
+    public static final DeferredBlock<RoomWallBlock> ROOM_WALL = BLOCKS.registerBlock("room_wall", RoomWallBlock::new, wallProperties());
+    public static final DeferredBlock<TunnelWallBlock> TUNNEL_WALL = BLOCKS.registerBlock("tunnel_wall", TunnelWallBlock::new, wallProperties());
+    public static final DeferredBlock<RedstoneTunnelWallBlock> REDSTONE_TUNNEL_WALL = BLOCKS.registerBlock("redstone_tunnel_wall", RedstoneTunnelWallBlock::new, wallProperties());
 
-    private static BlockBehaviour.Properties wallProperties(BlockBehaviour.Properties p) {
-        return p.mapColor(MapColor.COLOR_GRAY)
+    private static BlockBehaviour.Properties wallProperties() {
+        return BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_GRAY)
                 .sound(SoundType.METAL)
                 .strength(-1f, 3_600_000f)
                 .noLootTable()

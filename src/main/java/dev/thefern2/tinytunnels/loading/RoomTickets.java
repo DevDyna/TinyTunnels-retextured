@@ -198,7 +198,7 @@ public final class RoomTickets {
         boolean changed = OCCUPANCY.forceChunk(level, roomId, host.pos().getX() >> 4, host.pos().getZ() >> 4, add, true);
         // TODO(debug): remove once occupancy loading is verified in-game.
         TinyTunnels.LOGGER.info("[TT-DEBUG] occupancy {} room={} host={} in {} forceChunk returned {}",
-                add ? "ADD" : "REMOVE", roomId.toString().substring(0, 8), host.pos().toShortString(), host.dimension().identifier(), changed);
+                add ? "ADD" : "REMOVE", roomId.toString().substring(0, 8), host.pos().toShortString(), host.dimension().location(), changed);
     }
 
     private static void force(ServerLevel rooms, Room room, boolean add) {

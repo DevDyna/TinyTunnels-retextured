@@ -40,18 +40,18 @@ final class TunnelPlacement {
         if (room == null || !room.geometry().isShell(pos)) return InteractionResult.PASS;
         Direction inward = room.geometry().inwardNormal(pos);
         if (inward == null) {
-            if (player != null) player.sendOverlayMessage(Component.translatable("message.tinytunnels.tunnel.edge"));
+            if (player != null) player.displayClientMessage(Component.translatable("message.tinytunnels.tunnel.edge"), true);
             return InteractionResult.FAIL;
         }
         Direction face = room.nextFreeFace(null);
         if (face == null) {
-            if (player != null) player.sendOverlayMessage(Component.translatable("message.tinytunnels.tunnel.all_faces_used"));
+            if (player != null) player.displayClientMessage(Component.translatable("message.tinytunnels.tunnel.all_faces_used"), true);
             return InteractionResult.FAIL;
         }
 
         Component message = placer.place(new Target(rooms, data, room, pos, inward, face));
         context.getItemInHand().consume(1, player);
-        if (player != null) player.sendOverlayMessage(message);
+        if (player != null) player.displayClientMessage(message, true);
         return InteractionResult.SUCCESS;
     }
 

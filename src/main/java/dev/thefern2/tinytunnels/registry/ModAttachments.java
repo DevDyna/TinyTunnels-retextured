@@ -13,7 +13,7 @@ public final class ModAttachments {
 
     /** Not copied on death: dying inside a room respawns normally and forgets the way back. */
     public static final Supplier<AttachmentType<ReturnStack>> RETURN_STACK = ATTACHMENTS.register("return_stack",
-            () -> AttachmentType.builder(() -> ReturnStack.EMPTY).serialize(ReturnStack.MAP_CODEC).build());
+            () -> AttachmentType.builder(() -> ReturnStack.EMPTY).serialize(ReturnStack.MAP_CODEC.codec()).build());
 
     private ModAttachments() {}
 }
