@@ -4,8 +4,8 @@ One line per item; details are in `docs/todo/`. Items outside the phase plan (`d
 
 - Limit nesting, maybe with a setting?
 - Able to duplicate rooms, say you make a redstone clock you should be able to dupe room
-- Add Jade, and JEI mods for dev
 - Spawning on blocks, how to safely spawin inside a machine without getting stuck?
+    - Save position per player on exiting?
 
 ## Open
 
