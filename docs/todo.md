@@ -7,6 +7,8 @@ One line per item; details are in `docs/todo/`. Items outside the phase plan (`d
 - Spawning on blocks, how to safely spawin inside a machine without getting stuck?
     - Save position per player on exiting?
 - How to pick up rooms in creative?
+- I still think machine needs letters outside before tunnels are added inside, it makes it hard to know what's what
+- On load error on 1.21
 
 ## Open
 
