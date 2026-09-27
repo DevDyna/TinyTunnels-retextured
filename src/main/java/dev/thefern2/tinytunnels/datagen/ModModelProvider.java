@@ -43,7 +43,7 @@ public class ModModelProvider extends BlockStateProvider {
             }
             simpleBlockItem(block, base);
         });
-        simpleBlockWithItem(ModBlocks.ROOM_WALL.get(), cubeAll(ModBlocks.ROOM_WALL.get()));
+        simpleBlock(ModBlocks.ROOM_WALL.get());
 
         // One texture per mapped face (a letter on the port), so the mapping is visible. The inward
         // property doesn't change the look.

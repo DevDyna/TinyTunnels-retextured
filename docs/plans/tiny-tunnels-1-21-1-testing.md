@@ -37,7 +37,8 @@ Manual checks for the 1.21.1 backport (`tiny-tunnels-1-21-1-backport.md`, B1–B
 1. Start the client.
    - [ ] The game reaches the title screen with no crash. The mods list shows Tiny Tunnels `0.1.0+mc1.21.1`.
 2. Open the creative tab and look at every item.
-   - [ ] All six machines, the Room Wall, Shrinker, Tunnel, Redstone Tunnel and Tunnel Wrench have textures. No purple-and-black squares.
+   - [ ] All six machines, the Shrinker, Tunnel, Redstone Tunnel and Tunnel Wrench have textures. No purple-and-black squares.
+   - [ ] There's **no Room Wall** item in the creative tab or in JEI. Wall blocks have no item form.
    - [ ] The Tunnel Wrench is held like a tool, angled in hand. The others are flat items.
    - [ ] Every name is proper English, not a raw key like `item.tinytunnels.tunnel`.
 3. In JEI, look up the recipes (**R** over an item) for the Tiny Machine, Shrinker, Tunnel, Redstone Tunnel and Tunnel Wrench.

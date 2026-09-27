@@ -8,7 +8,7 @@ One line per item; details are in `docs/todo/`. Items outside the phase plan (`d
     - Save position per player on exiting?
 - How to pick up rooms in creative?
 - I still think machine needs letters outside before tunnels are added inside, it makes it hard to know what's what
-- On load error on 1.21
+- On resorce reload error on 1.21 
 
 ## Open
 
