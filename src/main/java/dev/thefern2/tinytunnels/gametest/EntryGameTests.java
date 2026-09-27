@@ -1,6 +1,6 @@
 package dev.thefern2.tinytunnels.gametest;
 
-import dev.thefern2.tinytunnels.machine.MachineBlockEntity;
+import dev.thefern2.tinytunnels.machine.MachineHost;
 import dev.thefern2.tinytunnels.room.EntryPoint;
 import dev.thefern2.tinytunnels.room.Room;
 import dev.thefern2.tinytunnels.room.RoomData;
@@ -69,7 +69,7 @@ final class EntryGameTests {
     }
 
     private static Room newRoom(GameTestHelper helper) {
-        MachineBlockEntity machine = TestRooms.placeMachine(helper, TunnelGameTests.MACHINE);
+        MachineHost machine = TestRooms.placeMachine(helper, TunnelGameTests.MACHINE);
         return TestRooms.room(helper, machine);
     }
 

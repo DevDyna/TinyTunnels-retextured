@@ -1,6 +1,6 @@
 # Tiny Tunnels 1.21.1 Backport Plan
 
-This plan comes **after the MVP**. Once the 26.1.2 MVP (Phases 1–6b of `tiny-tunnels-implementation.md`) and Phase 7 (redstone tunnel, Jade, recipes) are done, ship the same feature set on **Minecraft 1.21.1 / NeoForge 21.1.x**. That's the version most modpacks still use, and it's where Create, Mekanism 10.7 and Compact Machines 7 live today (`docs/research/modlist-26-1-2-support.md`).
+This plan comes **after the MVP**. Once the 26.1.2 MVP (Phases 1–6b of `tiny-tunnels-implementation.md`) and Phase 7 (redstone tunnel, Jade, recipes) are done, ship the same feature set on **Minecraft 1.21.1 / NeoForge 21.1.217** (the version in your own instance). That's the version most modpacks still use, and it's where Create, Mekanism 10.7 and Compact Machines 7 live today (`docs/research/modlist-26-1-2-support.md`).
 
 - **Primary version:** 26.1.2. New work lands there first.
 - **1.21.1:** a maintained port with the same features. The optional living miniature is the only exception (see B7).
@@ -23,11 +23,18 @@ This plan comes **after the MVP**. Once the 26.1.2 MVP (Phases 1–6b of `tiny-t
 
 | Option | Pros | Cons |
 |---|---|---|
-| **Branch per version** (`mc26.1.2/dev`, `mc1.21.1/dev`) | What Create, Mekanism and AE2 do; each branch is plain, idiomatic code; simple builds | Fixes have to be ported by hand |
+| **Branch per version** (`main`, `mc1.21.1/dev`) | What Create, Mekanism and AE2 do; each branch is plain, idiomatic code; simple builds | Fixes have to be ported by hand |
 | Stonecutter-style preprocessor (one source tree, comment directives) | One place for fixes | Directives everywhere, because the gap covers the transfer API, codecs, saving, datagen and renames; worse IDE experience |
 | Common module plus version adapter modules | Clean in theory | Minecraft types (`Identifier` vs `ResourceLocation`, `ValueInput` vs `CompoundTag`) leak through almost every signature, so "common" ends up tiny |
 
 **Decision: a branch per version.** Keep the parts that differ by version in a few seam classes, so each port or fix touches known files only.
+
+**Branch names (decided 2026-09-27):**
+
+- **`main`** is always the newest Minecraft line, today 26.1.2. There's no `mc26.1.2/dev` branch.
+- **`mc1.21.1/dev`** is created from the tag `v0.1.0+mc26.1.2`. That tag marks Phase 7, the redstone recipe change, JEI in dev, and the `MachineCore` refactor.
+- **A version branch is only created when `main` moves on.** When a future line (for example 27.x) comes and `main` starts porting to it, first create `mc26.x/dev` from main's last 26.x commit, then port `main`.
+- **Never merge between version branches.** Merging would bring the other line's APIs back. Fixes move with `git cherry-pick -x <sha>`: expect conflicts in seam files, fix those by hand, and plain-logic files apply cleanly.
 
 ### Seams to keep during MVP development (rules for the 26.1.2 code)
 
@@ -45,7 +52,7 @@ This plan comes **after the MVP**. Once the 26.1.2 MVP (Phases 1–6b of `tiny-t
 
 ## API differences, 26.1.2 → 1.21.1
 
-Signatures below were checked against `neoforge-21.1.251-sources.jar`, apart from the rows marked *(verify)*.
+Signatures below were checked against `neoforge-21.1.251-sources.jar`, apart from the rows marked *(verify)*. The branch builds against **21.1.217**, so recheck any signature that fails to compile against 217.
 
 | Area | 26.1.2 | 1.21.1 |
 |---|---|---|
@@ -93,10 +100,12 @@ Follow the seam rules above. When the MVP is tagged, note which files changed si
 
 ### B1: Branch and toolchain
 
-1. Create `mc1.21.1/dev` from the MVP tag. Swap the build files for `MDK-1.21.1-ModDevGradle`: MDG 2.0.147, NeoForge **21.1.251** or later, Parchment `2024.11.17`, Java 21. The repo's first MDG commit already had these files.
-2. Set `mod_version` to `x.y.z+mc1.21.1`; the main branch uses `x.y.z+mc26.1.2`.
-3. Pin `minecraft_version_range=[1.21.1]` and a `neo_version` range starting at 21.1.x.
-4. Check that the Client run config launches with the Example mod stripped.
+1. Create `mc1.21.1/dev` from tag `v0.1.0+mc26.1.2`. Swap the build files for `MDK-1.21.1-ModDevGradle`: MDG 2.0.147, NeoForge **21.1.217**, Parchment `2024.11.17`, Java 21. The repo's first MDG commit already had these files.
+   - Change `java-version` in `.github/workflows/build.yml` to `21` on this branch. It's `25` on `main`.
+2. Set `mod_version` to `0.1.0+mc1.21.1`; `main` uses `0.1.0+mc26.1.2`.
+3. Pin `minecraft_version_range=[1.21.1]` and `neo_version_range=[21.1.200,)`. That's the same floor as Create 6.0.8, so the jar runs anywhere that Create version runs.
+4. Test mods: replace the 26.1.2 `localRuntime` pins with their 1.21.1 builds. Create **6.0.8** (Modrinth `88L641Un`) needs Flywheel `[1.0.0,2.0)` and Ponder `1.0.64` or newer.
+5. Check that the Client run config launches with the Example mod stripped.
 
 **Acceptance:** `./gradlew compileJava` fails only in the seam files.
 
@@ -144,7 +153,7 @@ Follow the seam rules above. When the MVP is tagged, note which files changed si
 
 1. Port the GameTests to the 1.21.1 format, including `RedstoneGameTests` (T1–T10 plus the shell-repair regression). Same cases; the transaction tests become simulate tests.
 2. Manual mod matrix, the payoff of this branch:
-   - **Create 6.0.11:** belts, funnels and chutes into and out of a machine; mechanical pump fluids. Create funnels and chutes push and pull every tick, so run them early against the `simulate`-based guards. Rotation is B8.
+   - **Create 6.0.8:** belts, funnels and chutes into and out of a machine; mechanical pump fluids. Create funnels and chutes push and pull every tick, so run them early against the `simulate`-based guards. Rotation is B8.
    - **Mekanism 10.7:** universal cables and a logistical transporter, pushing and pulling.
      - Chemicals (gas, infuse, pigment, slurry) stay out of scope. They use Mekanism's own capabilities, so they would be a new tunnel kind, not a test case.
      - Record whether players will want them, and decide after the matrix.
@@ -157,7 +166,7 @@ Follow the seam rules above. When the MVP is tagged, note which files changed si
 ### B7: Release and maintenance
 
 - Release on CurseForge and Modrinth as separate files per MC version, with a changelog that tags which versions a fix applies to.
-- **Fix flow:** fix on `mc26.1.2/dev` first, then port. For a bug that exists only on 1.21.1, fix it there and note it. Keep a porting-debt list at the top of the 1.21.1 branch's changelog.
+- **Fix flow:** fix on `main` first, then cherry-pick. For a bug that exists only on 1.21.1, fix it there and note it. Keep a porting-debt list at the top of the 1.21.1 branch's changelog.
 - **Feature policy:** 1.21.1 gets every gameplay feature. The **living miniature** (post-MVP rendering) is optional: its renderer uses the 26.x extract/submit model, so it would need a separate immediate-mode implementation on 1.21.1. Decide once it exists on 26.1.2.
 - **End of life:** keep 1.21.1 maintained while it's the modpack consensus version. Freeze it (critical fixes only) once Create and Mekanism have been stable on 26.x for about a season.
 
@@ -171,7 +180,7 @@ This comes after B7, once the 1.21.1 branch is stable. The full design is in `do
 
 Summary of the work:
 
-1. **Refactor, Create-free:** move the machine logic into `MachineCore` and a `MachineHost` interface. Do it on **both** branches so the seam stays the same.
+1. **Refactor, Create-free: done on `main` on 2026-09-27, before branching.** The machine logic is in `machine/MachineCore`, and every caller uses the `machine/MachineHost` interface. `mc1.21.1/dev` inherits both from the tag.
 2. **Data, Create-free:** add `Room.kinetic` and `PortKind.KINETIC`. Also on both branches, so saves stay compatible.
 3. **Compat:** `compat/create` on 1.21.1 only: the kinetic wall block and block entity, the kinetic machine block entity, the item, links and Jade lines.
 4. **Tests:** GameTests K1–K11, then the in-game water-wheel pass.
@@ -191,6 +200,6 @@ Summary of the work:
 | B4 | Medium: three delegates plus the provider rewrite; the logic is unchanged |
 | B5 | Small to medium: mostly datagen API differences |
 | B6 | Medium: porting tests plus the manual mod matrix |
-| B8 | Medium to large: the `MachineCore` refactor, compat blocks and block entities, link logic, 11 GameTests |
+| B8 | Medium: compat blocks and block entities, link logic, 11 GameTests. The `MachineCore` refactor is already done. |
 
 The seam rules in B0 are what keep this small. If transfer or persistence code spreads outside the seam files during the MVP, B3/B4 grow in proportion.

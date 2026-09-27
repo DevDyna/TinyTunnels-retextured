@@ -9,7 +9,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import dev.thefern2.tinytunnels.TinyTunnels;
 import dev.thefern2.tinytunnels.loading.RoomTickets;
-import dev.thefern2.tinytunnels.machine.MachineBlockEntity;
+import dev.thefern2.tinytunnels.machine.MachineHost;
 import dev.thefern2.tinytunnels.machine.MachineSize;
 import dev.thefern2.tinytunnels.registry.ModDataComponents;
 import dev.thefern2.tinytunnels.registry.ModItems;
@@ -143,7 +143,7 @@ public final class TinyTunnelsCommand {
             int cx = host.pos().getX() >> 4, cz = host.pos().getZ() >> 4;
             boolean chunkLoaded = hostLevel.getChunkSource().hasChunk(cx, cz);
             String machine = chunkLoaded
-                    ? (hostLevel.getBlockEntity(host.pos()) instanceof MachineBlockEntity m ? "machine present, room=" + m.getRoomId() : "NO machine there")
+                    ? (hostLevel.getBlockEntity(host.pos()) instanceof MachineHost m ? "machine present, room=" + m.getRoomId() : "NO machine there")
                     : "-";
             return "host chunk " + cx + "," + cz + " loaded=" + chunkLoaded + " ticking=" + (chunkLoaded && hostLevel.shouldTickBlocksAt(host.pos())) + " (" + machine + ")";
         }).orElse("no host");

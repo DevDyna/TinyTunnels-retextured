@@ -4,7 +4,7 @@ Tiny Tunnels exists for this: build a room full of Create machinery (water wheel
 
 **Status (2026-09-27):** planned. Nothing is implemented yet.
 
-- **Where it's built:** on the **1.21.1 backport branch** (`mc1.21.1/dev`), against real **Create 6.0.11**. See phase B8 in `tiny-tunnels-1-21-1-backport.md`.
+- **Where it's built:** on the **1.21.1 backport branch** (`mc1.21.1/dev`), against real **Create 6.0.8** (the version in your own instance, on NeoForge 21.1.217). See phase B8 in `tiny-tunnels-1-21-1-backport.md`.
 - **Order:**
   1. finish the Phase 7 in-game redstone pass
   2. do the 1.21.1 backport (B1–B7)
@@ -12,13 +12,13 @@ Tiny Tunnels exists for this: build a room full of Create machinery (water wheel
 - **Why 1.21.1:** Create has no public 26.x build. An earlier version of this plan ported a slice of Create's kinetics to 26.1.2 ourselves; that was dropped (see "History"). On 1.21.1 the tunnel is tested against Create's real network code, and it can ship as a real feature.
 - **Porting to 26.x later:** when Create releases on 26.x, port `compat/create` forward. Everything Create-specific lives in that package for exactly this reason.
 
-Create class and method names below come from `Creators-of-Create/Create` branch `mc1.21.1/dev` (6.0.11), read on 2026-09-26. Anything marked **verify** hasn't been checked.
+Create class and method names below come from `Creators-of-Create/Create` branch `mc1.21.1/dev` (6.0.11), read on 2026-09-26. The build targets **6.0.8**, so recheck them against the 6.0.8 sources jar when B8 starts. Anything marked **verify** hasn't been checked.
 
 ## Decisions
 
 | Question | Decision |
 |---|---|
-| Dependency | Create is **optional**. Build with `compileOnly "com.simibubi.create:create-1.21.1:6.0.11-<build>"` (maven.createmod.net; **verify** the classifier, e.g. `:slim`) plus `localRuntime` for the full jar. Tiny Tunnels must load and run with no Create installed. |
+| Dependency | Create is **optional**. Build with `compileOnly` and `localRuntime` on Create 6.0.8: Modrinth `maven.modrinth:create:88L641Un`, or the matching `com.simibubi.create:create-1.21.1` build on maven.createmod.net. Its Flywheel and Ponder go on `localRuntime` too. Tiny Tunnels must load and run with no Create installed. |
 | Where the code lives | Everything that imports `com.simibubi.create.*` lives in `compat/create`. Nothing outside that package references a Create class, so the JVM never loads one when Create is absent. |
 | Tunnel direction | Same as the redstone tunnel: **OUT** carries rotation from the room to outside (the main use), **IN** carries it from outside into the room. Build OUT first; IN is its mirror image. |
 | Machine side | The machine itself becomes the kinetic source or consumer through a **second machine block entity type**, `KineticMachineBlockEntity` (in `compat/create`). It extends Create's `GeneratingKineticBlockEntity` and shares the machine logic with `MachineBlockEntity`. See "Keeping Create optional". |
@@ -75,10 +75,10 @@ Only call these when a value changed by more than a small epsilon. Otherwise eve
 
 `MachineBlockEntity` can't extend a Create class, because the class would fail to load without Create. So there are two block entity types for the machine blocks:
 
-1. **Pull the machine logic out into `MachineCore`**, a plain object holding the room id and the binding, load, unload and removal logic. Also add a `MachineHost` interface: `core()`, `getRoom()`, `hostedRoom()`, `insideCapability(...)`.
+1. **Done on `main` on 2026-09-27, before branching.** The machine logic is in `machine/MachineCore`: the room id, binding, the inside capability caches, load/unload/removal, and save/load. `machine/MachineHost` is the interface: `core()`, `getRoomId()`, `getRoom()`, `hostedRoom()`, `bindOnPlace(...)`, `insideCapability(...)`.
    - `MachineBlockEntity` implements it and delegates to its core.
-   - Code that checks `instanceof MachineBlockEntity` switches to `instanceof MachineHost`: `RoomTickets`, `CapabilityUpdates`, the tunnel items, Jade `ServerData`, commands, GameTests.
-   - This refactor is Create-independent. It can happen on both branches, which keeps the seam the same.
+   - Every caller checks `instanceof MachineHost`: `RoomTickets`, `CapabilityUpdates`, `TunnelCapabilities`, `RedstoneTunnels`, `ShrinkerItem`, Jade `ServerData`, the command and the GameTests. The only places that still name `MachineBlockEntity` are its block entity type registration, `MachineBlock.newBlockEntity` and the Jade plugin's class registration.
+   - B8 adds the kinetic type in those three places. The Jade plugin needs a second `registerBlockDataProvider` for the kinetic class.
 2. `compat/create/KineticMachineBlockEntity extends GeneratingKineticBlockEntity implements MachineHost`, with its own `MachineCore`.
    - Its block entity type is registered only when `ModList.get().isLoaded("create")`, and it's valid for all six machine blocks.
 3. `MachineBlock.newBlockEntity` returns the kinetic type when Create is loaded, else the plain one.

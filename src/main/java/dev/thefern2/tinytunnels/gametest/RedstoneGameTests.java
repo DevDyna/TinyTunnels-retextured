@@ -4,7 +4,7 @@ import java.util.EnumMap;
 import java.util.Map;
 
 import dev.thefern2.tinytunnels.machine.MachineBlock;
-import dev.thefern2.tinytunnels.machine.MachineBlockEntity;
+import dev.thefern2.tinytunnels.machine.MachineHost;
 import dev.thefern2.tinytunnels.machine.MachineSize;
 import dev.thefern2.tinytunnels.machine.PortKind;
 import dev.thefern2.tinytunnels.registry.ModBlocks;
@@ -47,7 +47,7 @@ final class RedstoneGameTests {
 
     /** Every machine face carries a signal in, each through a different wall. */
     static void inFaceMatrix(GameTestHelper helper) {
-        MachineBlockEntity machine = TestRooms.placeMachine(helper, MACHINE);
+        MachineHost machine = TestRooms.placeMachine(helper, MACHINE);
         Room room = TestRooms.room(helper, machine);
         ServerLevel rooms = TestRooms.rooms(helper);
         BlockPos machinePos = helper.absolutePos(MACHINE);
@@ -67,7 +67,7 @@ final class RedstoneGameTests {
 
     /** Every machine face carries a signal out, each through a different wall. */
     static void outFaceMatrix(GameTestHelper helper) {
-        MachineBlockEntity machine = TestRooms.placeMachine(helper, MACHINE);
+        MachineHost machine = TestRooms.placeMachine(helper, MACHINE);
         Room room = TestRooms.room(helper, machine);
         ServerLevel rooms = TestRooms.rooms(helper);
         BlockPos machinePos = helper.absolutePos(MACHINE);
@@ -87,7 +87,7 @@ final class RedstoneGameTests {
 
     /** Dust three blocks from its source (13) comes out of the machine at 13. */
     static void analog(GameTestHelper helper) {
-        MachineBlockEntity machine = TestRooms.placeMachine(helper, MACHINE);
+        MachineHost machine = TestRooms.placeMachine(helper, MACHINE);
         Room room = TestRooms.room(helper, machine);
         ServerLevel rooms = TestRooms.rooms(helper);
         BlockPos wall = lowWestWall(room, 0);
@@ -103,7 +103,7 @@ final class RedstoneGameTests {
 
     /** Right-click with an empty hand flips the direction; the old output goes dark and the new one works. */
     static void toggleMode(GameTestHelper helper) {
-        MachineBlockEntity machine = TestRooms.placeMachine(helper, MACHINE);
+        MachineHost machine = TestRooms.placeMachine(helper, MACHINE);
         Room room = TestRooms.room(helper, machine);
         ServerLevel rooms = TestRooms.rooms(helper);
         BlockPos wall = TestRooms.wallCenter(room.geometry(), Direction.WEST);
@@ -132,7 +132,7 @@ final class RedstoneGameTests {
      * going round; once the kick is gone it fades out instead of holding itself on, and nothing recurses.
      */
     static void loop(GameTestHelper helper) {
-        MachineBlockEntity machine = TestRooms.placeMachine(helper, MACHINE);
+        MachineHost machine = TestRooms.placeMachine(helper, MACHINE);
         Room room = TestRooms.room(helper, machine);
         ServerLevel rooms = TestRooms.rooms(helper);
         BlockPos in = TestRooms.addRedstoneTunnel(helper, room, Direction.NORTH, lowWestWall(room, 0), RedstoneMode.IN);
@@ -159,7 +159,7 @@ final class RedstoneGameTests {
 
     /** A redstone face moves no items from either side; an item tunnel on another face still does. */
     static void noCapabilities(GameTestHelper helper) {
-        MachineBlockEntity machine = TestRooms.placeMachine(helper, MACHINE);
+        MachineHost machine = TestRooms.placeMachine(helper, MACHINE);
         Room room = TestRooms.room(helper, machine);
         ServerLevel rooms = TestRooms.rooms(helper);
         BlockPos machinePos = helper.absolutePos(MACHINE);
@@ -182,7 +182,7 @@ final class RedstoneGameTests {
 
     /** Picking up the machine darkens the inside. */
     static void machineRemoved(GameTestHelper helper) {
-        MachineBlockEntity machine = TestRooms.placeMachine(helper, MACHINE);
+        MachineHost machine = TestRooms.placeMachine(helper, MACHINE);
         Room room = TestRooms.room(helper, machine);
         ServerLevel rooms = TestRooms.rooms(helper);
         BlockPos wall = TestRooms.wallCenter(room.geometry(), Direction.EAST);
@@ -203,7 +203,7 @@ final class RedstoneGameTests {
 
     /** The wrench moves the output to the next free face, then removes the tunnel. */
     static void wrench(GameTestHelper helper) {
-        MachineBlockEntity machine = TestRooms.placeMachine(helper, MACHINE);
+        MachineHost machine = TestRooms.placeMachine(helper, MACHINE);
         Room room = TestRooms.room(helper, machine);
         ServerLevel rooms = TestRooms.rooms(helper);
         BlockPos wall = TestRooms.wallCenter(room.geometry(), Direction.WEST);
@@ -235,11 +235,11 @@ final class RedstoneGameTests {
 
     /** A signal passes into a machine nested inside another machine's room. */
     static void nested(GameTestHelper helper) {
-        MachineBlockEntity outer = TestRooms.placeMachine(helper, MACHINE);
+        MachineHost outer = TestRooms.placeMachine(helper, MACHINE);
         Room outerRoom = TestRooms.room(helper, outer);
         ServerLevel rooms = TestRooms.rooms(helper);
         BlockPos innerPos = TestRooms.addRedstoneTunnel(helper, outerRoom, Direction.NORTH, TestRooms.wallCenter(outerRoom.geometry(), Direction.SOUTH), RedstoneMode.IN);
-        MachineBlockEntity inner = TestRooms.placeMachine(rooms, innerPos, MachineSize.NORMAL);
+        MachineHost inner = TestRooms.placeMachine(rooms, innerPos, MachineSize.NORMAL);
         Room innerRoom = TestRooms.room(helper, inner);
         BlockPos lamp = TestRooms.addRedstoneTunnel(helper, innerRoom, Direction.SOUTH, TestRooms.wallCenter(innerRoom.geometry(), Direction.SOUTH), RedstoneMode.IN);
         rooms.setBlock(lamp, Blocks.REDSTONE_LAMP.defaultBlockState(), Block.UPDATE_ALL);
@@ -253,7 +253,7 @@ final class RedstoneGameTests {
 
     /** The Redstone Tunnel item, used on a wall, makes an IN tunnel on the first free face and sets its port. */
     static void itemAndPorts(GameTestHelper helper) {
-        MachineBlockEntity machine = TestRooms.placeMachine(helper, MACHINE);
+        MachineHost machine = TestRooms.placeMachine(helper, MACHINE);
         Room room = TestRooms.room(helper, machine);
         ServerLevel rooms = TestRooms.rooms(helper);
         BlockPos wall = TestRooms.wallCenter(room.geometry(), Direction.WEST);
@@ -275,7 +275,7 @@ final class RedstoneGameTests {
 
     /** Entering a room repairs its shell; that must keep redstone tunnels (it used to turn them into plain walls). */
     static void shellRepairKeepsRedstone(GameTestHelper helper) {
-        MachineBlockEntity machine = TestRooms.placeMachine(helper, MACHINE);
+        MachineHost machine = TestRooms.placeMachine(helper, MACHINE);
         Room room = TestRooms.room(helper, machine);
         ServerLevel rooms = TestRooms.rooms(helper);
         BlockPos wall = TestRooms.wallCenter(room.geometry(), Direction.DOWN);

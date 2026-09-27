@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import dev.thefern2.tinytunnels.TinyTunnels;
 import dev.thefern2.tinytunnels.loading.RoomTickets;
 import dev.thefern2.tinytunnels.machine.MachineBlock;
-import dev.thefern2.tinytunnels.machine.MachineBlockEntity;
+import dev.thefern2.tinytunnels.machine.MachineHost;
 import dev.thefern2.tinytunnels.room.Room;
 import dev.thefern2.tinytunnels.room.RoomData;
 import dev.thefern2.tinytunnels.room.RoomDimension;
@@ -118,7 +118,7 @@ public final class CapabilityUpdates {
         if (LOADED_CHUNKS.isEmpty()) return;
         List<LoadedChunk> chunks = new ArrayList<>();
         for (LoadedChunk chunk; (chunk = LOADED_CHUNKS.poll()) != null; ) chunks.add(chunk);
-        for (MachineBlockEntity machine : RoomTickets.machines()) {
+        for (MachineHost machine : RoomTickets.machines()) {
             if (!(machine.getLevel() instanceof ServerLevel level)) continue;
             int mx = machine.getBlockPos().getX() >> 4, mz = machine.getBlockPos().getZ() >> 4;
             for (LoadedChunk chunk : chunks) {

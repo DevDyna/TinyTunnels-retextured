@@ -132,7 +132,7 @@ public class MachineBlock extends Block implements EntityBlock {
                 }
                 return null;
             }
-            if (room != null && MachineBlockEntity.isHostedElsewhere(level.getServer(), room, here)) {
+            if (room != null && MachineCore.isHostedElsewhere(level.getServer(), room, here)) {
                 if (context.getPlayer() != null) {
                     GlobalPos host = room.host().orElseThrow();
                     context.getPlayer().sendOverlayMessage(Component.translatable("message.tinytunnels.machine.already_placed",
@@ -178,7 +178,7 @@ public class MachineBlock extends Block implements EntityBlock {
 
     @Override
     protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        if (level.getBlockEntity(pos) instanceof MachineBlockEntity machine) RedstoneTunnels.readMachineInputs(level, machine);
+        if (level.getBlockEntity(pos) instanceof MachineHost machine) RedstoneTunnels.readMachineInputs(level, machine);
     }
 
     @Override
@@ -193,7 +193,7 @@ public class MachineBlock extends Block implements EntityBlock {
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity by, ItemStack itemStack) {
         super.setPlacedBy(level, pos, state, by, itemStack);
-        if (level instanceof ServerLevel server && level.getBlockEntity(pos) instanceof MachineBlockEntity machine) {
+        if (level instanceof ServerLevel server && level.getBlockEntity(pos) instanceof MachineHost machine) {
             machine.bindOnPlace(server, size);
         }
     }

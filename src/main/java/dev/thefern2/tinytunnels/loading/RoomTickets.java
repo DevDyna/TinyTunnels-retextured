@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import dev.thefern2.tinytunnels.TinyTunnels;
-import dev.thefern2.tinytunnels.machine.MachineBlockEntity;
+import dev.thefern2.tinytunnels.machine.MachineHost;
 import dev.thefern2.tinytunnels.room.Room;
 import dev.thefern2.tinytunnels.room.RoomData;
 import dev.thefern2.tinytunnels.room.RoomDimension;
@@ -60,7 +60,7 @@ public final class RoomTickets {
     /** Room id -> the machine position whose chunk is held because someone is inside that room (or a room nested in it). */
     private static final Map<UUID, GlobalPos> OCCUPIED = new HashMap<>();
 
-    private static final Set<MachineBlockEntity> MACHINES = new HashSet<>();
+    private static final Set<MachineHost> MACHINES = new HashSet<>();
     private static final Set<UUID> ACTIVE = new HashSet<>();
     private static boolean dirty;
 
@@ -71,13 +71,13 @@ public final class RoomTickets {
     }
 
     /** A machine block entity was loaded on the server. */
-    public static void track(MachineBlockEntity machine) {
+    public static void track(MachineHost machine) {
         MACHINES.add(machine);
         dirty = true;
     }
 
     /** A machine block entity was unloaded or removed. */
-    public static void untrack(MachineBlockEntity machine) {
+    public static void untrack(MachineHost machine) {
         MACHINES.remove(machine);
         dirty = true;
     }
@@ -88,7 +88,7 @@ public final class RoomTickets {
     }
 
     /** Machines currently loaded on the server. */
-    public static Set<MachineBlockEntity> machines() {
+    public static Set<MachineHost> machines() {
         return Collections.unmodifiableSet(MACHINES);
     }
 
@@ -138,7 +138,7 @@ public final class RoomTickets {
         reconcileOccupancy(server, rooms, data);
 
         Set<UUID> wanted = new HashSet<>();
-        for (MachineBlockEntity machine : MACHINES) {
+        for (MachineHost machine : MACHINES) {
             UUID roomId = machine.getRoomId();
             if (roomId != null && !machine.isRemoved() && machine.getLevel() instanceof ServerLevel level
                     && level.shouldTickBlocksAt(machine.getBlockPos())) {

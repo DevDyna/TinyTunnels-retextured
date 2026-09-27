@@ -10,7 +10,7 @@ import org.jspecify.annotations.Nullable;
 
 import dev.thefern2.tinytunnels.TinyTunnels;
 import dev.thefern2.tinytunnels.machine.MachineBlock;
-import dev.thefern2.tinytunnels.machine.MachineBlockEntity;
+import dev.thefern2.tinytunnels.machine.MachineHost;
 import dev.thefern2.tinytunnels.room.RedstoneMode;
 import dev.thefern2.tinytunnels.room.RedstoneTunnel;
 import dev.thefern2.tinytunnels.room.Room;
@@ -55,7 +55,7 @@ public final class RedstoneTunnels {
 
     /** What the machine emits on {@code face}: the stored signal of an OUT redstone tunnel there. */
     public static int machineOutput(BlockGetter level, BlockPos pos, Direction face) {
-        if (!(level instanceof ServerLevel server) || !(server.getBlockEntity(pos) instanceof MachineBlockEntity machine)) return 0;
+        if (!(level instanceof ServerLevel server) || !(server.getBlockEntity(pos) instanceof MachineHost machine)) return 0;
         RedstoneTunnel tunnel = machine.hostedRoom().map(room -> room.redstone().get(face)).orElse(null);
         return tunnel != null && tunnel.mode() == RedstoneMode.OUT ? tunnel.power() : 0;
     }
@@ -91,7 +91,7 @@ public final class RedstoneTunnels {
     }
 
     /** The machine's scheduled tick: reads each IN face and passes changes into the room. */
-    public static void readMachineInputs(ServerLevel level, MachineBlockEntity machine) {
+    public static void readMachineInputs(ServerLevel level, MachineHost machine) {
         Room room = machine.hostedRoom().orElse(null);
         if (room == null) return;
         for (Map.Entry<Direction, RedstoneTunnel> entry : room.redstone().entrySet()) {
@@ -229,7 +229,7 @@ public final class RedstoneTunnels {
             ServerLevel level = target.level();
             if (!level.isLoaded(target.pos())) continue;
             BlockState state = level.getBlockState(target.pos());
-            if (level.getBlockEntity(target.pos()) instanceof MachineBlockEntity machine) {
+            if (level.getBlockEntity(target.pos()) instanceof MachineHost machine) {
                 Room room = machine.hostedRoom().orElse(null);
                 if (room == null) continue;
                 room.redstone().forEach((face, tunnel) -> {

@@ -4,7 +4,7 @@ import org.jspecify.annotations.Nullable;
 
 import dev.thefern2.tinytunnels.TinyTunnels;
 import dev.thefern2.tinytunnels.machine.MachineBlock;
-import dev.thefern2.tinytunnels.machine.MachineBlockEntity;
+import dev.thefern2.tinytunnels.machine.MachineHost;
 import dev.thefern2.tinytunnels.registry.ModBlocks;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -48,7 +48,7 @@ public final class TunnelCapabilities {
     private static <T> @Nullable T fromMachine(TransferKind<T> kind, Level level, BlockState state, @Nullable BlockEntity be, @Nullable Direction side) {
         if (side == null) return null;
         if (level.isClientSide()) return MachineBlock.hasTunnel(state, side) ? kind.empty() : null;
-        if (!(be instanceof MachineBlockEntity machine)) return null;
+        if (!(be instanceof MachineHost machine)) return null;
         try {
             return ProxyGuard.lookup(kind, () -> machine.insideCapability(kind, side));
         } catch (RuntimeException e) {

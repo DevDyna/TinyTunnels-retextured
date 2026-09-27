@@ -1,6 +1,6 @@
 package dev.thefern2.tinytunnels.gametest;
 
-import dev.thefern2.tinytunnels.machine.MachineBlockEntity;
+import dev.thefern2.tinytunnels.machine.MachineHost;
 import dev.thefern2.tinytunnels.machine.MachineSize;
 import dev.thefern2.tinytunnels.registry.ModBlocks;
 import dev.thefern2.tinytunnels.room.RedstoneMode;
@@ -26,14 +26,14 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
 /** Builds machines, rooms and tunnels in code, the way a player would, for GameTests. */
 final class TestRooms {
     /** A machine placed and bound like a player placing it, in any level. */
-    static MachineBlockEntity placeMachine(ServerLevel level, BlockPos pos, MachineSize size) {
+    static MachineHost placeMachine(ServerLevel level, BlockPos pos, MachineSize size) {
         level.setBlock(pos, ModBlocks.MACHINES.get(size).get().defaultBlockState(), Block.UPDATE_ALL);
-        MachineBlockEntity machine = (MachineBlockEntity) level.getBlockEntity(pos);
+        MachineHost machine = (MachineHost) level.getBlockEntity(pos);
         machine.bindOnPlace(level, size);
         return machine;
     }
 
-    static MachineBlockEntity placeMachine(GameTestHelper helper, BlockPos relative) {
+    static MachineHost placeMachine(GameTestHelper helper, BlockPos relative) {
         return placeMachine(helper.getLevel(), helper.absolutePos(relative), MachineSize.NORMAL);
     }
 
@@ -41,7 +41,7 @@ final class TestRooms {
         return RoomDimension.getRoomLevel(helper.getLevel().getServer());
     }
 
-    static Room room(GameTestHelper helper, MachineBlockEntity machine) {
+    static Room room(GameTestHelper helper, MachineHost machine) {
         return RoomData.get(helper.getLevel().getServer()).room(machine.getRoomId()).orElseThrow();
     }
 

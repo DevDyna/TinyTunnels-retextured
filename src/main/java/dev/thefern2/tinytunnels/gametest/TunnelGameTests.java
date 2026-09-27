@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import dev.thefern2.tinytunnels.loading.RoomTickets;
 import dev.thefern2.tinytunnels.machine.MachineBlock;
-import dev.thefern2.tinytunnels.machine.MachineBlockEntity;
+import dev.thefern2.tinytunnels.machine.MachineHost;
 import dev.thefern2.tinytunnels.machine.MachineSize;
 import dev.thefern2.tinytunnels.registry.ModBlocks;
 import dev.thefern2.tinytunnels.room.Room;
@@ -42,7 +42,7 @@ final class TunnelGameTests {
 
     /** Every machine face routed through a tunnel on every wall, both directions. */
     static void faceMatrix(GameTestHelper helper) {
-        MachineBlockEntity machine = TestRooms.placeMachine(helper, MACHINE);
+        MachineHost machine = TestRooms.placeMachine(helper, MACHINE);
         Room room = TestRooms.room(helper, machine);
         ServerLevel rooms = TestRooms.rooms(helper);
         BlockPos machinePos = helper.absolutePos(MACHINE);
@@ -78,7 +78,7 @@ final class TunnelGameTests {
     /** A hopper pushing into the machine lands items in the chest inside (push only, nothing pulls). */
     static void hopperOutsideIn(GameTestHelper helper) {
         BlockPos machineRel = new BlockPos(2, 1, 2);
-        MachineBlockEntity machine = TestRooms.placeMachine(helper, machineRel);
+        MachineHost machine = TestRooms.placeMachine(helper, machineRel);
         Room room = TestRooms.room(helper, machine);
         BlockPos inside = TestRooms.addTunnel(helper, room, Direction.UP, TestRooms.wallCenter(room.geometry(), Direction.NORTH));
         TestRooms.rooms(helper).setBlock(inside, Blocks.CHEST.defaultBlockState(), Block.UPDATE_ALL);
@@ -89,7 +89,7 @@ final class TunnelGameTests {
 
     /** A hopper inside pushing into a tunnel lands items in the chest touching that machine face outside. */
     static void hopperInsideOut(GameTestHelper helper) {
-        MachineBlockEntity machine = TestRooms.placeMachine(helper, MACHINE);
+        MachineHost machine = TestRooms.placeMachine(helper, MACHINE);
         Room room = TestRooms.room(helper, machine);
         helper.setBlock(MACHINE.below(), Blocks.CHEST);
         BlockPos floorTunnel = TestRooms.wallCenter(room.geometry(), Direction.DOWN);
@@ -103,7 +103,7 @@ final class TunnelGameTests {
 
     /** Water through a tunnel into a cauldron inside. */
     static void fluidIntoCauldron(GameTestHelper helper) {
-        MachineBlockEntity machine = TestRooms.placeMachine(helper, MACHINE);
+        MachineHost machine = TestRooms.placeMachine(helper, MACHINE);
         Room room = TestRooms.room(helper, machine);
         BlockPos inside = TestRooms.addTunnel(helper, room, Direction.EAST, TestRooms.wallCenter(room.geometry(), Direction.WEST));
         ServerLevel rooms = TestRooms.rooms(helper);
@@ -117,7 +117,7 @@ final class TunnelGameTests {
 
     /** A tunnel face with nothing behind it answers empty (pipes connect); a face without a tunnel answers null. */
     static void emptyVersusNull(GameTestHelper helper) {
-        MachineBlockEntity machine = TestRooms.placeMachine(helper, MACHINE);
+        MachineHost machine = TestRooms.placeMachine(helper, MACHINE);
         Room room = TestRooms.room(helper, machine);
         TestRooms.addTunnel(helper, room, Direction.UP, TestRooms.wallCenter(room.geometry(), Direction.NORTH));
         BlockPos pos = helper.absolutePos(MACHINE);
@@ -132,7 +132,7 @@ final class TunnelGameTests {
 
     /** A pipe that cached "nothing" before the tunnel existed is told when the tunnel appears. */
     static void pipeBeforeTunnel(GameTestHelper helper) {
-        MachineBlockEntity machine = TestRooms.placeMachine(helper, MACHINE);
+        MachineHost machine = TestRooms.placeMachine(helper, MACHINE);
         Room room = TestRooms.room(helper, machine);
         AtomicBoolean notified = new AtomicBoolean();
         BlockCapabilityCache<ResourceHandler<ItemResource>, Direction> pipe = BlockCapabilityCache.create(Capabilities.Item.BLOCK,
@@ -153,7 +153,7 @@ final class TunnelGameTests {
 
     /** Swapping the block behind a tunnel re-routes a pipe without re-placing it. */
     static void hotSwap(GameTestHelper helper) {
-        MachineBlockEntity machine = TestRooms.placeMachine(helper, MACHINE);
+        MachineHost machine = TestRooms.placeMachine(helper, MACHINE);
         Room room = TestRooms.room(helper, machine);
         BlockPos inside = TestRooms.addTunnel(helper, room, Direction.SOUTH, TestRooms.wallCenter(room.geometry(), Direction.NORTH));
         ServerLevel rooms = TestRooms.rooms(helper);
@@ -176,7 +176,7 @@ final class TunnelGameTests {
 
     /** A transfer that isn't committed leaves both sides unchanged. */
     static void rollback(GameTestHelper helper) {
-        MachineBlockEntity machine = TestRooms.placeMachine(helper, MACHINE);
+        MachineHost machine = TestRooms.placeMachine(helper, MACHINE);
         Room room = TestRooms.room(helper, machine);
         BlockPos inside = TestRooms.addTunnel(helper, room, Direction.WEST, TestRooms.wallCenter(room.geometry(), Direction.SOUTH));
         TestRooms.rooms(helper).setBlock(inside, Blocks.CHEST.defaultBlockState(), Block.UPDATE_ALL);
@@ -191,7 +191,7 @@ final class TunnelGameTests {
 
     /** With the machine gone, a tunnel's inward side answers empty (not null); other sides answer null. */
     static void machineMissing(GameTestHelper helper) {
-        MachineBlockEntity machine = TestRooms.placeMachine(helper, MACHINE);
+        MachineHost machine = TestRooms.placeMachine(helper, MACHINE);
         Room room = TestRooms.room(helper, machine);
         BlockPos wall = TestRooms.wallCenter(room.geometry(), Direction.EAST);
         TestRooms.addTunnel(helper, room, Direction.NORTH, wall);
@@ -229,7 +229,7 @@ final class TunnelGameTests {
      */
     private static BlockPos buildChain(GameTestHelper helper, int machines) {
         ServerLevel rooms = TestRooms.rooms(helper);
-        MachineBlockEntity machine = TestRooms.placeMachine(helper, MACHINE);
+        MachineHost machine = TestRooms.placeMachine(helper, MACHINE);
         BlockPos inside = null;
         for (int i = 0; i < machines; i++) {
             Room room = TestRooms.room(helper, machine);
@@ -243,7 +243,7 @@ final class TunnelGameTests {
 
     /** A wall replaced by a command comes back on the next tick. */
     static void shellRepair(GameTestHelper helper) {
-        MachineBlockEntity machine = TestRooms.placeMachine(helper, MACHINE);
+        MachineHost machine = TestRooms.placeMachine(helper, MACHINE);
         Room room = TestRooms.room(helper, machine);
         BlockPos wall = TestRooms.wallCenter(room.geometry(), Direction.EAST);
         ServerLevel rooms = TestRooms.rooms(helper);
@@ -256,7 +256,7 @@ final class TunnelGameTests {
 
     /** A placed machine gets its room loaded; removing the machine releases it. */
     static void followTheHost(GameTestHelper helper) {
-        MachineBlockEntity machine = TestRooms.placeMachine(helper, MACHINE);
+        MachineHost machine = TestRooms.placeMachine(helper, MACHINE);
         var roomId = machine.getRoomId();
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(RoomTickets.active().contains(roomId), "waiting for the room ticket"))
@@ -267,7 +267,7 @@ final class TunnelGameTests {
 
     /** The machine's face flag (letter overlay, client answers) follows its tunnels. */
     static void faceFlags(GameTestHelper helper) {
-        MachineBlockEntity machine = TestRooms.placeMachine(helper, MACHINE);
+        MachineHost machine = TestRooms.placeMachine(helper, MACHINE);
         Room room = TestRooms.room(helper, machine);
         TestRooms.addTunnel(helper, room, Direction.UP, TestRooms.wallCenter(room.geometry(), Direction.NORTH));
         BlockPos pos = helper.absolutePos(MACHINE);
@@ -280,7 +280,7 @@ final class TunnelGameTests {
 
     /** A machine can't be placed inside its own room. */
     static void noNestingInItself(GameTestHelper helper) {
-        MachineBlockEntity machine = TestRooms.placeMachine(helper, MACHINE);
+        MachineHost machine = TestRooms.placeMachine(helper, MACHINE);
         Room room = TestRooms.room(helper, machine);
         RoomGeometry geometry = room.geometry();
         GlobalPos insideItsOwnRoom = GlobalPos.of(RoomDimension.key(helper.getLevel().getServer()), geometry.min().offset(2, 1, 2));

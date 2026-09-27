@@ -1,6 +1,6 @@
 package dev.thefern2.tinytunnels.compat.jade;
 
-import dev.thefern2.tinytunnels.machine.MachineBlockEntity;
+import dev.thefern2.tinytunnels.machine.MachineHost;
 import dev.thefern2.tinytunnels.room.RedstoneTunnel;
 import dev.thefern2.tinytunnels.room.Room;
 import dev.thefern2.tinytunnels.room.RoomData;
@@ -22,7 +22,7 @@ enum ServerData implements IServerDataProvider<BlockAccessor> {
     MACHINE(TinyTunnelsJadePlugin.MACHINE) {
         @Override
         public void appendServerData(CompoundTag data, BlockAccessor accessor) {
-            if (!(accessor.getBlockEntity() instanceof MachineBlockEntity machine)) return;
+            if (!(accessor.getBlockEntity() instanceof MachineHost machine)) return;
             machine.hostedRoom().ifPresent(room -> room.redstone().forEach((face, tunnel) -> {
                 data.putString("redstone_" + face.getSerializedName(), tunnel.mode().getSerializedName());
                 data.putInt("power_" + face.getSerializedName(), tunnel.power());

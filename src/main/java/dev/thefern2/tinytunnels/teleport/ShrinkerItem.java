@@ -1,7 +1,7 @@
 package dev.thefern2.tinytunnels.teleport;
 
 import dev.thefern2.tinytunnels.machine.MachineBlock;
-import dev.thefern2.tinytunnels.machine.MachineBlockEntity;
+import dev.thefern2.tinytunnels.machine.MachineHost;
 import dev.thefern2.tinytunnels.room.Room;
 import dev.thefern2.tinytunnels.room.RoomDimension;
 import net.minecraft.network.chat.Component;
@@ -35,7 +35,7 @@ public class ShrinkerItem extends Item {
             return InteractionResult.FAIL;
         }
 
-        Room room = level.getBlockEntity(context.getClickedPos()) instanceof MachineBlockEntity machine ? machine.getRoom().orElse(null) : null;
+        Room room = level.getBlockEntity(context.getClickedPos()) instanceof MachineHost machine ? machine.getRoom().orElse(null) : null;
         if (room == null) {
             player.sendOverlayMessage(Component.translatable("message.tinytunnels.enter.no_room"));
             return InteractionResult.FAIL;
