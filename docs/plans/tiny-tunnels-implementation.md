@@ -15,8 +15,9 @@ A 1.21.1 backport comes after the MVP; see `docs/plans/tiny-tunnels-1-21-1-backp
 | 3 Machine and room binding | Done. Tested in-game 2026-09-26. |
 | 4 Enter and exit | Done. Tested in-game 2026-09-26. |
 | 5 Follow-the-host loading | Done. Tested in-game 2026-09-26 after the ticking fix (see notes). |
-| 6a Tunnels (+ occupancy loading, unbreakable shell) | Code done 2026-09-26. Dev server boots with the test mods. In-game checks: `tiny-tunnels-phase-6a-testing.md`. |
-| 6b GameTests | Not started |
+| 6a Tunnels (+ occupancy loading, unbreakable shell) | Done. Tested in-game 2026-09-26 (`tiny-tunnels-phase-6a-testing.md`). Follow-ups also done: face labels, Pipez flange fix, Tunnel Wrench. |
+| 6b GameTests | Done 2026-09-26. 15 tests, all passing via `./gradlew runGameTestServer`; also run in CI (`.github/workflows/build.yml`). |
+| 7 Redstone tunnel, Jade, recipes | Implemented 2026-09-26 (`tiny-tunnels-phase-7.md`). 26 GameTests passing (11 new). In-game pass pending: `tiny-tunnels-phase-7-testing.md`. |
 
 Implementation notes that differ from the text below:
 - `RoomWallBlock` is a plain `Block` configured through properties. A class gets added only if behaviour is needed.
@@ -24,6 +25,13 @@ Implementation notes that differ from the text below:
 - Machines have explosion resistance 1200, since losing the machine item would strand its room.
 - The tunnel wall has no item; the tunnel item places it.
 - Config is `SERVER` type (per world): `shrinkAnimation` and `shrinkTicks`.
+- **GameTests** (`gametest/`):
+  - Registered only when GameTests are enabled (dev runs, GameTest server).
+  - Test functions go through `DeferredRegister<TEST_FUNCTION>`; instances through `RegisterGameTestsEvent`. All use the empty structure `data/tinytunnels/structure/empty_5x5x5.nbt`.
+  - `TestRooms` builds machines, rooms and tunnels in code.
+  - Mutation-checked: disabling end-of-tick invalidation makes `pipe_before_tunnel` and `hot_swap` fail.
+  - Run them with `./gradlew runGameTestServer`, or `/test runall tinytunnels` in a dev client.
+- **The GameTest server has no datapack dimensions** (vanilla `GameTestServer` uses `noDatapackDimensions`). There, and only there, `RoomDimension.getRoomLevel` falls back to the overworld. Always use `RoomDimension.getRoomLevel`/`key`/`isRoomLevel`, never compare against `ROOM_DIM` directly.
 - Room walls, tunnel walls and machines are **not redstone conductors** (2026-09-26). Chests open underneath them, and power never soaks through. Future redstone tunnels will emit and read signals on purpose instead.
 - Grid spacing is 4 chunks (was 2); see Phase 2.
 - Tunnels, as built:
@@ -356,9 +364,13 @@ Tunnel bugs are the biggest risk, so automated tests come right after tunnels ra
 
 **Acceptance**: `./gradlew runGameTestServer` passes in CI (the MDK's `.github/workflows/build.yml` can call it).
 
-## Phase 7+: Later
+## Phase 7: Redstone tunnel, Jade, recipes
 
-- From the spec: recipes and progression, typed or multiple tunnels per face, redstone tunnel, Mekanism chemicals, Jade tooltip, 2×2 rooms.
+Planned in `docs/plans/tiny-tunnels-phase-7.md` (redstone tunnel as a separate item, Jade tooltip, recipes and progression).
+
+## Phase 8+: Later
+
+- From the spec: typed or multiple tunnels per face, Mekanism chemicals, 2×2 rooms.
 - From research: the **living miniature** (Tier 2 in `docs/research/platform-and-approach.md`). Start with a spike to measure meshing cost and the 26.x `extractRenderState`/`submit` path, and check shader and Vulkan (26.4) behaviour. Every buffer needs a deterministic free.
 - Post-MVP: the 1.21.1 backport (`docs/plans/tiny-tunnels-1-21-1-backport.md`).
 

@@ -87,6 +87,11 @@ public final class CapabilityUpdates {
         }
     }
 
+    /** Only the machine's face flags need updating, e.g. after a redstone tunnel was added or moved. */
+    public static void syncFaces(UUID roomId) {
+        FACE_SYNC.add(roomId);
+    }
+
     /** Sets each changed room's machine face flags (the letter overlays) to its current tunnels. */
     private static void syncMachineFaces(MinecraftServer server) {
         if (FACE_SYNC.isEmpty()) return;
@@ -100,8 +105,12 @@ public final class CapabilityUpdates {
             if (level == null || !level.isLoaded(host.pos())) continue;
             BlockState state = level.getBlockState(host.pos());
             if (!(state.getBlock() instanceof MachineBlock)) continue;
-            BlockState synced = MachineBlock.withTunnelFaces(state, room.tunnels().keySet());
-            if (synced != state) level.setBlock(host.pos(), synced, Block.UPDATE_ALL);
+            BlockState synced = MachineBlock.withPorts(state, room);
+            if (synced != state) {
+                level.setBlock(host.pos(), synced, Block.UPDATE_ALL);
+                // Whether it emits on a face follows the port, so re-announce its redstone.
+                RedstoneTunnels.refreshLater(level, host.pos());
+            }
         }
     }
 

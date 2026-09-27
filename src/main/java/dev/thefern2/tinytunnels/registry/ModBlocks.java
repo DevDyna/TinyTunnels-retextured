@@ -6,6 +6,7 @@ import java.util.Map;
 import dev.thefern2.tinytunnels.TinyTunnels;
 import dev.thefern2.tinytunnels.machine.MachineBlock;
 import dev.thefern2.tinytunnels.machine.MachineSize;
+import dev.thefern2.tinytunnels.tunnel.RedstoneTunnelWallBlock;
 import dev.thefern2.tinytunnels.tunnel.TunnelWallBlock;
 import dev.thefern2.tinytunnels.wall.RoomWallBlock;
 import net.minecraft.core.BlockPos;
@@ -38,6 +39,7 @@ public final class ModBlocks {
     // Room walls are unbreakable, drop nothing and can't be pushed; the tunnel wall replaces one of them.
     public static final DeferredBlock<RoomWallBlock> ROOM_WALL = BLOCKS.registerBlock("room_wall", RoomWallBlock::new, ModBlocks::wallProperties);
     public static final DeferredBlock<TunnelWallBlock> TUNNEL_WALL = BLOCKS.registerBlock("tunnel_wall", TunnelWallBlock::new, ModBlocks::wallProperties);
+    public static final DeferredBlock<RedstoneTunnelWallBlock> REDSTONE_TUNNEL_WALL = BLOCKS.registerBlock("redstone_tunnel_wall", RedstoneTunnelWallBlock::new, ModBlocks::wallProperties);
 
     private static BlockBehaviour.Properties wallProperties(BlockBehaviour.Properties p) {
         return p.mapColor(MapColor.COLOR_GRAY)

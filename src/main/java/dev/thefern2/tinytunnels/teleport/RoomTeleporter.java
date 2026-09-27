@@ -8,6 +8,7 @@ import java.util.UUID;
 import dev.thefern2.tinytunnels.Config;
 import dev.thefern2.tinytunnels.TinyTunnels;
 import dev.thefern2.tinytunnels.registry.ModAttachments;
+import dev.thefern2.tinytunnels.room.EntryPoint;
 import dev.thefern2.tinytunnels.room.Room;
 import dev.thefern2.tinytunnels.room.RoomBuilder;
 import dev.thefern2.tinytunnels.room.RoomData;
@@ -17,6 +18,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -67,6 +69,8 @@ public final class RoomTeleporter {
     /** Returns to where the player last entered from. With nowhere to go back to, sends them to world spawn. */
     public static void exit(ServerPlayer player) {
         MinecraftServer server = player.level().getServer();
+        // Where they stand now is a spot someone fits; the next entry to this room starts there.
+        RoomEntry.rememberExit(player.level(), player.position(), player.getYRot(), player.getXRot());
         ReturnStack stack = player.getData(ModAttachments.RETURN_STACK);
         ReturnPoint point = stack.peek().orElse(null);
         player.setData(ModAttachments.RETURN_STACK, stack.pop());
@@ -96,9 +100,10 @@ public final class RoomTeleporter {
         // Cheap repair: puts back any wall or tunnel that went missing.
         RoomBuilder.build(rooms, room);
 
+        EntryPoint entry = RoomEntry.find(rooms, room, player.getDimensions(Pose.STANDING), player.getYRot(), player.getXRot());
         ReturnStack stack = player.getData(ModAttachments.RETURN_STACK);
         player.setData(ModAttachments.RETURN_STACK, stack.push(ReturnPoint.of(player)));
-        if (player.teleport(new TeleportTransition(rooms, room.geometry().spawn(), Vec3.ZERO, player.getYRot(), player.getXRot(), TeleportTransition.DO_NOTHING)) == null) {
+        if (player.teleport(new TeleportTransition(rooms, entry.pos(), Vec3.ZERO, entry.yRot(), entry.xRot(), TeleportTransition.DO_NOTHING)) == null) {
             player.setData(ModAttachments.RETURN_STACK, stack);
         }
     }

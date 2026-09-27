@@ -1,15 +1,21 @@
 # Tiny Tunnels 1.21.1 Backport Plan
 
-This plan comes **after the MVP**. Once the 26.1.2 MVP (Phases 1–6b of `tiny-tunnels-implementation.md`) is done, ship the same feature set on **Minecraft 1.21.1 / NeoForge 21.1.x**. That's the version most modpacks still use, and it's where Create, Mekanism 10.7 and Compact Machines 7 live today (`docs/research/modlist-26-1-2-support.md`).
+This plan comes **after the MVP**. Once the 26.1.2 MVP (Phases 1–6b of `tiny-tunnels-implementation.md`) and Phase 7 (redstone tunnel, Jade, recipes) are done, ship the same feature set on **Minecraft 1.21.1 / NeoForge 21.1.x**. That's the version most modpacks still use, and it's where Create, Mekanism 10.7 and Compact Machines 7 live today (`docs/research/modlist-26-1-2-support.md`).
 
 - **Primary version:** 26.1.2. New work lands there first.
 - **1.21.1:** a maintained port with the same features. The optional living miniature is the only exception (see B7).
+- **Order (decided 2026-09-27):**
+  1. finish the Phase 7 in-game redstone pass
+  2. do this backport (B1–B7)
+  3. build the **kinetic tunnel** on 1.21.1 against real Create (B8)
+  - Create has no public 26.x build. So 1.21.1 is where kinetics and the rest of the mod matrix (Create, Mekanism, AE2) can be tested for real. Moving from transactions to `simulate` also shows how these mods behave on the older transfer API.
 
 ## Why it's worth doing
 
 - It reaches today's players and packs, including your own instance.
 - Compact Machines 7 on 1.21.1 still has no tunnels. That's the gap players ask about most (CM #609).
 - Testing gets richer: Create, Mekanism 10.7, AE2 and Pipez all have stable 1.21.1 builds.
+- It's the only place the **kinetic tunnel** (Create rotation through a machine face), the reason Tiny Tunnels exists, can be built against real Create today.
 
 ## Strategy: one branch per MC version, with seams
 
@@ -34,7 +40,8 @@ This plan comes **after the MVP**. Once the 26.1.2 MVP (Phases 1–6b of `tiny-t
 5. **Datagen and hand-written JSON:** `datagen/` and `data/tinytunnels/dimension_type/`.
 6. **GameTests:** `gametest/`.
 7. **Java syntax:** write Java 21-compatible code. Avoid the unnamed `_` variable (22), flexible constructor bodies (25), primitive patterns and module imports.
-8. **Pure logic in plain Java** (no Minecraft types, or only stable ones like `BlockPos` and `Direction`): `RoomGeometry`, room allocation, face-cycling rules, the recursion counter. Those files should copy across unchanged.
+8. **Mod compat:** code that imports another mod's classes lives only in `compat/<modid>/` (today `compat/jade`, later `compat/create`), and nothing outside it references those classes. The mod must load with every compat mod absent.
+9. **Pure logic in plain Java** (no Minecraft types, or only stable ones like `BlockPos` and `Direction`): `RoomGeometry`, room allocation, face-cycling rules, the recursion counter. Those files should copy across unchanged.
 
 ## API differences, 26.1.2 → 1.21.1
 
@@ -107,6 +114,8 @@ Follow the seam rules above. When the MVP is tagged, note which files changed si
 - `ReturnStack` attachment: serialize with a `Codec`.
 - Removal: `onRemove` in `MachineBlock` and `TunnelWallBlock`. `neighborChanged` and `useItemOn` signatures.
 
+- Phase 7: the redstone tunnel wall and machine `PortKind` ports use the same `neighborChanged` / removal changes. `RoomData`'s `redstone` map goes through the same `Room` codec, unchanged.
+
 **Acceptance:** Phases 1–5 acceptance checks pass on 1.21.1.
 
 ### B4: Transfer layer
@@ -133,10 +142,12 @@ Follow the seam rules above. When the MVP is tagged, note which files changed si
 
 ### B6: Tests on 1.21.1
 
-1. Port the GameTests to the 1.21.1 format. Same cases; the transaction tests become simulate tests.
+1. Port the GameTests to the 1.21.1 format, including `RedstoneGameTests` (T1–T10 plus the shell-repair regression). Same cases; the transaction tests become simulate tests.
 2. Manual mod matrix, the payoff of this branch:
-   - **Create:** belts, funnels and chutes into and out of a machine; mechanical pump fluids.
-   - **Mekanism 10.7:** universal cables and a logistical transporter, pushing and pulling. Chemicals stay out of scope.
+   - **Create 6.0.11:** belts, funnels and chutes into and out of a machine; mechanical pump fluids. Create funnels and chutes push and pull every tick, so run them early against the `simulate`-based guards. Rotation is B8.
+   - **Mekanism 10.7:** universal cables and a logistical transporter, pushing and pulling.
+     - Chemicals (gas, infuse, pigment, slurry) stay out of scope. They use Mekanism's own capabilities, so they would be a new tunnel kind, not a test case.
+     - Record whether players will want them, and decide after the matrix.
    - AE2 storage, import and export buses on a machine face.
    - Pipez, Storage Drawers, Refined Storage 2.
    - **Compact Machines 7 installed alongside**: both mods load, their dimensions don't collide, and a CM machine inside a Tiny Tunnels room works.
@@ -150,6 +161,27 @@ Follow the seam rules above. When the MVP is tagged, note which files changed si
 - **Feature policy:** 1.21.1 gets every gameplay feature. The **living miniature** (post-MVP rendering) is optional: its renderer uses the 26.x extract/submit model, so it would need a separate immediate-mode implementation on 1.21.1. Decide once it exists on 26.1.2.
 - **End of life:** keep 1.21.1 maintained while it's the modpack consensus version. Freeze it (critical fixes only) once Create and Mekanism have been stable on 26.x for about a season.
 
+### B8: Kinetic tunnel (Create rotation)
+
+This comes after B7, once the 1.21.1 branch is stable. The full design is in `docs/plans/tiny-tunnels-kinetic-tunnel.md`:
+
+- both ends swap speed, spare capacity and demand through a transient link
+- Create is optional, through `compat/create`
+- one kinetic face per machine to start
+
+Summary of the work:
+
+1. **Refactor, Create-free:** move the machine logic into `MachineCore` and a `MachineHost` interface. Do it on **both** branches so the seam stays the same.
+2. **Data, Create-free:** add `Room.kinetic` and `PortKind.KINETIC`. Also on both branches, so saves stay compatible.
+3. **Compat:** `compat/create` on 1.21.1 only: the kinetic wall block and block entity, the kinetic machine block entity, the item, links and Jade lines.
+4. **Tests:** GameTests K1–K11, then the in-game water-wheel pass.
+
+**Acceptance:**
+
+- A room with water wheels geared to a target RPM drives Create machines outside through an OUT tunnel.
+- Overload stops both sides cleanly.
+- The mod loads with Create removed.
+
 ## Effort estimate
 
 | Phase | Size |
@@ -159,5 +191,6 @@ Follow the seam rules above. When the MVP is tagged, note which files changed si
 | B4 | Medium: three delegates plus the provider rewrite; the logic is unchanged |
 | B5 | Small to medium: mostly datagen API differences |
 | B6 | Medium: porting tests plus the manual mod matrix |
+| B8 | Medium to large: the `MachineCore` refactor, compat blocks and block entities, link logic, 11 GameTests |
 
 The seam rules in B0 are what keep this small. If transfer or persistence code spreads outside the seam files during the MVP, B3/B4 grow in proportion.

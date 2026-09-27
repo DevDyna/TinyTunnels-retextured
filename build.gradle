@@ -124,6 +124,11 @@ dependencies {
     localRuntime "maven.modrinth:jade:5jKeKXwB"             // 26.1.11: block info tooltips
     localRuntime "maven.modrinth:ae2:NLfXQFbp"              // 26.1.12-beta: storage/import/export buses
     localRuntime "maven.modrinth:guideme:ZkJhP9xE"          // 26.1.12-beta: required by AE2
+    localRuntime "maven.modrinth:jei:TEcYvrui"              // 29.43.0.105-beta: recipe viewer
+    localRuntime "maven.modrinth:mezzconfig:577CgmcB"       // 0.6.5: required by JEI
+
+    // Jade's API for our tooltip plugin (compat/jade). Optional: found by Jade via @WailaPlugin, never a dependency.
+    compileOnly "maven.modrinth:jade:5jKeKXwB"
 
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime

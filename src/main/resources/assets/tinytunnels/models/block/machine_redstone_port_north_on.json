@@ -1,0 +1,32 @@
+{
+  "textures": {
+    "port": "tinytunnels:block/machine_redstone_port_north_on",
+    "particle": "tinytunnels:block/machine_redstone_port_north_on"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        -0.01
+      ],
+      "to": [
+        16,
+        16,
+        -0.01
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#port",
+          "cullface": "north"
+        }
+      }
+    }
+  ]
+}

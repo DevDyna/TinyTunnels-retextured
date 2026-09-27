@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "tinytunnels:block/redstone_tunnel_wall_down_in_on"
+  }
+}

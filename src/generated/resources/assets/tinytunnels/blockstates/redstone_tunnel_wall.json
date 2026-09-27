@@ -1,0 +1,436 @@
+{
+  "variants": {
+    "face=down,inward=down,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_down_in"
+    },
+    "face=down,inward=down,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_down_in_on"
+    },
+    "face=down,inward=down,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_down_out"
+    },
+    "face=down,inward=down,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_down_out_on"
+    },
+    "face=down,inward=east,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_down_in"
+    },
+    "face=down,inward=east,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_down_in_on"
+    },
+    "face=down,inward=east,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_down_out"
+    },
+    "face=down,inward=east,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_down_out_on"
+    },
+    "face=down,inward=north,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_down_in"
+    },
+    "face=down,inward=north,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_down_in_on"
+    },
+    "face=down,inward=north,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_down_out"
+    },
+    "face=down,inward=north,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_down_out_on"
+    },
+    "face=down,inward=south,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_down_in"
+    },
+    "face=down,inward=south,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_down_in_on"
+    },
+    "face=down,inward=south,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_down_out"
+    },
+    "face=down,inward=south,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_down_out_on"
+    },
+    "face=down,inward=up,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_down_in"
+    },
+    "face=down,inward=up,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_down_in_on"
+    },
+    "face=down,inward=up,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_down_out"
+    },
+    "face=down,inward=up,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_down_out_on"
+    },
+    "face=down,inward=west,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_down_in"
+    },
+    "face=down,inward=west,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_down_in_on"
+    },
+    "face=down,inward=west,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_down_out"
+    },
+    "face=down,inward=west,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_down_out_on"
+    },
+    "face=east,inward=down,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_east_in"
+    },
+    "face=east,inward=down,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_east_in_on"
+    },
+    "face=east,inward=down,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_east_out"
+    },
+    "face=east,inward=down,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_east_out_on"
+    },
+    "face=east,inward=east,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_east_in"
+    },
+    "face=east,inward=east,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_east_in_on"
+    },
+    "face=east,inward=east,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_east_out"
+    },
+    "face=east,inward=east,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_east_out_on"
+    },
+    "face=east,inward=north,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_east_in"
+    },
+    "face=east,inward=north,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_east_in_on"
+    },
+    "face=east,inward=north,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_east_out"
+    },
+    "face=east,inward=north,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_east_out_on"
+    },
+    "face=east,inward=south,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_east_in"
+    },
+    "face=east,inward=south,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_east_in_on"
+    },
+    "face=east,inward=south,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_east_out"
+    },
+    "face=east,inward=south,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_east_out_on"
+    },
+    "face=east,inward=up,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_east_in"
+    },
+    "face=east,inward=up,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_east_in_on"
+    },
+    "face=east,inward=up,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_east_out"
+    },
+    "face=east,inward=up,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_east_out_on"
+    },
+    "face=east,inward=west,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_east_in"
+    },
+    "face=east,inward=west,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_east_in_on"
+    },
+    "face=east,inward=west,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_east_out"
+    },
+    "face=east,inward=west,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_east_out_on"
+    },
+    "face=north,inward=down,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_north_in"
+    },
+    "face=north,inward=down,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_north_in_on"
+    },
+    "face=north,inward=down,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_north_out"
+    },
+    "face=north,inward=down,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_north_out_on"
+    },
+    "face=north,inward=east,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_north_in"
+    },
+    "face=north,inward=east,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_north_in_on"
+    },
+    "face=north,inward=east,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_north_out"
+    },
+    "face=north,inward=east,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_north_out_on"
+    },
+    "face=north,inward=north,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_north_in"
+    },
+    "face=north,inward=north,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_north_in_on"
+    },
+    "face=north,inward=north,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_north_out"
+    },
+    "face=north,inward=north,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_north_out_on"
+    },
+    "face=north,inward=south,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_north_in"
+    },
+    "face=north,inward=south,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_north_in_on"
+    },
+    "face=north,inward=south,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_north_out"
+    },
+    "face=north,inward=south,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_north_out_on"
+    },
+    "face=north,inward=up,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_north_in"
+    },
+    "face=north,inward=up,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_north_in_on"
+    },
+    "face=north,inward=up,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_north_out"
+    },
+    "face=north,inward=up,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_north_out_on"
+    },
+    "face=north,inward=west,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_north_in"
+    },
+    "face=north,inward=west,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_north_in_on"
+    },
+    "face=north,inward=west,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_north_out"
+    },
+    "face=north,inward=west,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_north_out_on"
+    },
+    "face=south,inward=down,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_south_in"
+    },
+    "face=south,inward=down,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_south_in_on"
+    },
+    "face=south,inward=down,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_south_out"
+    },
+    "face=south,inward=down,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_south_out_on"
+    },
+    "face=south,inward=east,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_south_in"
+    },
+    "face=south,inward=east,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_south_in_on"
+    },
+    "face=south,inward=east,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_south_out"
+    },
+    "face=south,inward=east,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_south_out_on"
+    },
+    "face=south,inward=north,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_south_in"
+    },
+    "face=south,inward=north,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_south_in_on"
+    },
+    "face=south,inward=north,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_south_out"
+    },
+    "face=south,inward=north,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_south_out_on"
+    },
+    "face=south,inward=south,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_south_in"
+    },
+    "face=south,inward=south,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_south_in_on"
+    },
+    "face=south,inward=south,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_south_out"
+    },
+    "face=south,inward=south,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_south_out_on"
+    },
+    "face=south,inward=up,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_south_in"
+    },
+    "face=south,inward=up,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_south_in_on"
+    },
+    "face=south,inward=up,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_south_out"
+    },
+    "face=south,inward=up,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_south_out_on"
+    },
+    "face=south,inward=west,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_south_in"
+    },
+    "face=south,inward=west,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_south_in_on"
+    },
+    "face=south,inward=west,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_south_out"
+    },
+    "face=south,inward=west,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_south_out_on"
+    },
+    "face=up,inward=down,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_up_in"
+    },
+    "face=up,inward=down,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_up_in_on"
+    },
+    "face=up,inward=down,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_up_out"
+    },
+    "face=up,inward=down,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_up_out_on"
+    },
+    "face=up,inward=east,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_up_in"
+    },
+    "face=up,inward=east,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_up_in_on"
+    },
+    "face=up,inward=east,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_up_out"
+    },
+    "face=up,inward=east,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_up_out_on"
+    },
+    "face=up,inward=north,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_up_in"
+    },
+    "face=up,inward=north,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_up_in_on"
+    },
+    "face=up,inward=north,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_up_out"
+    },
+    "face=up,inward=north,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_up_out_on"
+    },
+    "face=up,inward=south,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_up_in"
+    },
+    "face=up,inward=south,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_up_in_on"
+    },
+    "face=up,inward=south,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_up_out"
+    },
+    "face=up,inward=south,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_up_out_on"
+    },
+    "face=up,inward=up,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_up_in"
+    },
+    "face=up,inward=up,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_up_in_on"
+    },
+    "face=up,inward=up,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_up_out"
+    },
+    "face=up,inward=up,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_up_out_on"
+    },
+    "face=up,inward=west,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_up_in"
+    },
+    "face=up,inward=west,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_up_in_on"
+    },
+    "face=up,inward=west,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_up_out"
+    },
+    "face=up,inward=west,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_up_out_on"
+    },
+    "face=west,inward=down,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_west_in"
+    },
+    "face=west,inward=down,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_west_in_on"
+    },
+    "face=west,inward=down,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_west_out"
+    },
+    "face=west,inward=down,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_west_out_on"
+    },
+    "face=west,inward=east,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_west_in"
+    },
+    "face=west,inward=east,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_west_in_on"
+    },
+    "face=west,inward=east,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_west_out"
+    },
+    "face=west,inward=east,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_west_out_on"
+    },
+    "face=west,inward=north,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_west_in"
+    },
+    "face=west,inward=north,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_west_in_on"
+    },
+    "face=west,inward=north,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_west_out"
+    },
+    "face=west,inward=north,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_west_out_on"
+    },
+    "face=west,inward=south,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_west_in"
+    },
+    "face=west,inward=south,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_west_in_on"
+    },
+    "face=west,inward=south,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_west_out"
+    },
+    "face=west,inward=south,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_west_out_on"
+    },
+    "face=west,inward=up,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_west_in"
+    },
+    "face=west,inward=up,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_west_in_on"
+    },
+    "face=west,inward=up,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_west_out"
+    },
+    "face=west,inward=up,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_west_out_on"
+    },
+    "face=west,inward=west,mode=in,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_west_in"
+    },
+    "face=west,inward=west,mode=in,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_west_in_on"
+    },
+    "face=west,inward=west,mode=out,powered=false": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_west_out"
+    },
+    "face=west,inward=west,mode=out,powered=true": {
+      "model": "tinytunnels:block/redstone_tunnel_wall_west_out_on"
+    }
+  }
+}

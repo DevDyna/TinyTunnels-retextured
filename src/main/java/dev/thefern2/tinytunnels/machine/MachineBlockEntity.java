@@ -15,6 +15,7 @@ import dev.thefern2.tinytunnels.room.RoomData;
 import dev.thefern2.tinytunnels.room.RoomDimension;
 import dev.thefern2.tinytunnels.tunnel.CapabilityUpdates;
 import dev.thefern2.tinytunnels.tunnel.EndpointCaches;
+import dev.thefern2.tinytunnels.tunnel.RedstoneTunnels;
 import dev.thefern2.tinytunnels.tunnel.TransferKind;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -49,11 +50,18 @@ public class MachineBlockEntity extends BlockEntity {
         return RoomData.get(server.getServer()).room(roomId);
     }
 
+    /** The room, only while this machine is its current host (not a stale or duplicated machine). */
+    public Optional<Room> hostedRoom() {
+        if (!(level instanceof ServerLevel server)) return Optional.empty();
+        GlobalPos here = GlobalPos.of(server.dimension(), worldPosition);
+        return getRoom().filter(room -> room.host().map(here::equals).orElse(false));
+    }
+
     /**
      * Called once the machine is placed: binds to the room from the item, or creates a new room.
      * Placement of a machine whose room is live elsewhere is already refused in {@link MachineBlock}.
      */
-    void bindOnPlace(ServerLevel level, MachineSize size) {
+    public void bindOnPlace(ServerLevel level, MachineSize size) {
         MinecraftServer server = level.getServer();
         RoomData data = RoomData.get(server);
         Room room = roomId == null ? null : data.room(roomId).orElse(null);
@@ -68,6 +76,7 @@ public class MachineBlockEntity extends BlockEntity {
         data.setHost(room.id(), GlobalPos.of(level.dimension(), worldPosition));
         RoomTickets.requestUpdate();
         data.room(room.id()).ifPresent(bound -> CapabilityUpdates.roomChanged(server, bound));
+        RedstoneTunnels.refreshLater(level, worldPosition);
     }
 
     /**
@@ -102,6 +111,8 @@ public class MachineBlockEntity extends BlockEntity {
             // Nudge both ends: pipes may have cached "nothing" before this machine or its room loaded.
             CapabilityUpdates.schedule(server, worldPosition);
             getRoom().ifPresent(room -> CapabilityUpdates.roomChanged(server.getServer(), room));
+            // Redstone tunnels may have changed while this machine was unloaded.
+            RedstoneTunnels.refreshLater(server, worldPosition);
         }
     }
 
@@ -143,6 +154,8 @@ public class MachineBlockEntity extends BlockEntity {
         super.preRemoveSideEffects(pos, state);
         if (roomId != null && level instanceof ServerLevel server) {
             RoomData data = RoomData.get(server.getServer());
+            // The inside stops seeing the redstone outside this machine.
+            hostedRoom().ifPresent(room -> RedstoneTunnels.machineRemoved(server.getServer(), room));
             data.clearHostIf(roomId, GlobalPos.of(server.dimension(), pos));
             // Pipes inside the room now see an empty machine side.
             data.room(roomId).ifPresent(room -> CapabilityUpdates.roomChanged(server.getServer(), room));

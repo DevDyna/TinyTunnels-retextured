@@ -1,6 +1,7 @@
 package dev.thefern2.tinytunnels.room;
 
 import dev.thefern2.tinytunnels.registry.ModBlocks;
+import dev.thefern2.tinytunnels.tunnel.RedstoneTunnelWallBlock;
 import dev.thefern2.tinytunnels.tunnel.TunnelWallBlock;
 import dev.thefern2.tinytunnels.wall.ShellProtection;
 import net.minecraft.core.BlockPos;
@@ -13,8 +14,8 @@ import net.minecraft.world.level.block.state.BlockState;
 /** Places a room's walls in the room dimension. */
 public final class RoomBuilder {
     /**
-     * Repairs a room's shell: every wall block is put back, and every tunnel is restored at its
-     * mapped position. Safe to call on an intact room.
+     * Repairs a room's shell: every wall block is put back, and every tunnel (item and redstone) is
+     * restored at its mapped position. Safe to call on an intact room; runs on every entry.
      */
     public static void build(ServerLevel rooms, Room room) {
         ShellProtection.edit(() -> {
@@ -25,6 +26,17 @@ public final class RoomBuilder {
                 BlockState tunnel = ModBlocks.TUNNEL_WALL.get().defaultBlockState()
                         .setValue(TunnelWallBlock.FACE, face).setValue(TunnelWallBlock.INWARD, inward);
                 if (!rooms.getBlockState(pos).equals(tunnel)) rooms.setBlock(pos, tunnel, Block.UPDATE_ALL);
+            });
+            room.redstone().forEach((face, redstone) -> {
+                Direction inward = room.geometry().inwardNormal(redstone.pos());
+                if (inward == null) return;
+                BlockState current = rooms.getBlockState(redstone.pos());
+                // Leave an intact wall alone; its look is kept in step by RedstoneTunnels.
+                if (current.getBlock() instanceof RedstoneTunnelWallBlock && current.getValue(RedstoneTunnelWallBlock.FACE) == face) return;
+                rooms.setBlock(redstone.pos(), ModBlocks.REDSTONE_TUNNEL_WALL.get().defaultBlockState()
+                        .setValue(RedstoneTunnelWallBlock.FACE, face).setValue(RedstoneTunnelWallBlock.INWARD, inward)
+                        .setValue(RedstoneTunnelWallBlock.MODE, redstone.mode())
+                        .setValue(RedstoneTunnelWallBlock.POWERED, redstone.power() > 0), Block.UPDATE_ALL);
             });
         });
     }
@@ -48,7 +60,7 @@ public final class RoomBuilder {
             if (room.isShell(pos)) {
                 BlockState current = rooms.getBlockState(pos);
                 // Tunnels are put back by build(Room); leave any that are already there.
-                if (!current.is(ModBlocks.ROOM_WALL.get()) && !current.is(ModBlocks.TUNNEL_WALL.get())) {
+                if (!ShellProtection.isShellBlock(current)) {
                     rooms.setBlock(pos, wall, Block.UPDATE_CLIENTS);
                 }
             }

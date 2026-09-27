@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "M": "#c:gems/diamond",
+    "R": "#c:dusts/redstone"
+  },
+  "pattern": [
+    "MMM",
+    "MRM",
+    "MMM"
+  ],
+  "result": {
+    "id": "tinytunnels:large_machine"
+  }
+}

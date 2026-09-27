@@ -20,7 +20,7 @@ import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 /**
- * Keeps room shells intact. Room and tunnel walls can't be broken by anyone, in any game mode.
+ * Keeps room shells intact. Room and tunnel walls (both kinds) can't be broken by anyone, in any game mode.
  * Anything else that removes a wall (commands, mods that set blocks directly) is undone on the next
  * tick. Blocks inside rooms are not affected.
  *
@@ -44,7 +44,7 @@ public final class ShellProtection {
     }
 
     public static boolean isShellBlock(BlockState state) {
-        return state.is(ModBlocks.ROOM_WALL.get()) || state.is(ModBlocks.TUNNEL_WALL.get());
+        return state.is(ModBlocks.ROOM_WALL.get()) || state.is(ModBlocks.TUNNEL_WALL.get()) || state.is(ModBlocks.REDSTONE_TUNNEL_WALL.get());
     }
 
     @SubscribeEvent

@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "redstone",
+  "ingredients": [
+    "tinytunnels:tunnel",
+    "minecraft:comparator"
+  ],
+  "result": {
+    "id": "tinytunnels:redstone_tunnel"
+  }
+}

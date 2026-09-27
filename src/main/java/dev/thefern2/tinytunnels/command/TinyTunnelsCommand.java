@@ -94,6 +94,8 @@ public final class TinyTunnelsCommand {
         }
         source.sendSuccess(() -> describe(room), false);
         room.tunnels().forEach((face, pos) -> source.sendSuccess(() -> Component.literal("  tunnel " + face.getSerializedName() + " -> " + pos.toShortString()), false));
+        room.redstone().forEach((face, tunnel) -> source.sendSuccess(() -> Component.literal("  redstone " + face.getSerializedName() + " -> "
+                + tunnel.pos().toShortString() + " " + tunnel.mode().getSerializedName() + " power " + tunnel.power()), false));
         return 1;
     }
 
@@ -160,7 +162,7 @@ public final class TinyTunnelsCommand {
                 .withClickEvent(new ClickEvent.SuggestCommand("/" + TinyTunnels.MODID + " debug give " + room.id()))
                 .withHoverEvent(new HoverEvent.ShowText(Component.literal("Click to get a machine bound to this room"))));
         return Component.empty().append(id).append("  #" + room.gridIndex() + "  " + room.size() + "x" + room.size()
-                + "  at " + geometry.min().toShortString() + "  host: " + host + "  tunnels: " + room.tunnels().size());
+                + "  at " + geometry.min().toShortString() + "  host: " + host + "  tunnels: " + room.tunnels().size() + "  redstone: " + room.redstone().size());
     }
 
     private TinyTunnelsCommand() {}

@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 
+import dev.thefern2.tinytunnels.gametest.TinyTunnelsGameTests;
 import dev.thefern2.tinytunnels.registry.ModAttachments;
 import dev.thefern2.tinytunnels.registry.ModBlockEntities;
 import dev.thefern2.tinytunnels.registry.ModBlocks;
@@ -30,6 +31,7 @@ public class TinyTunnels {
         ModCreativeTabs.TABS.register(modEventBus);
 
         modContainer.registerConfig(ModConfig.Type.SERVER, Config.SPEC);
+        TinyTunnelsGameTests.register(modEventBus);
     }
 
     public static Identifier id(String path) {

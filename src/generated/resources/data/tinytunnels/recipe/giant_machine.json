@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "E": "minecraft:ender_eye",
+    "M": "#c:gems/emerald"
+  },
+  "pattern": [
+    "MMM",
+    "MEM",
+    "MMM"
+  ],
+  "result": {
+    "id": "tinytunnels:giant_machine"
+  }
+}

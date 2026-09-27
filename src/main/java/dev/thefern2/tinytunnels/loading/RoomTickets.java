@@ -172,7 +172,7 @@ public final class RoomTickets {
                 GlobalPos host = room.host().orElse(null);
                 if (host == null || wanted.containsKey(room.id())) break;
                 wanted.put(room.id(), host);
-                room = host.dimension() == RoomDimension.ROOM_DIM
+                room = host.dimension() == rooms.dimension()
                         ? data.byChunk(new ChunkPos(host.pos().getX() >> 4, host.pos().getZ() >> 4)).orElse(null)
                         : null;
             }

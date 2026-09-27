@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
 import org.jspecify.annotations.Nullable;
@@ -20,8 +21,10 @@ import dev.thefern2.tinytunnels.TinyTunnels;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.saveddata.SavedDataType;
 
@@ -70,9 +73,9 @@ public class RoomData extends SavedData {
      * True if placing a machine for {@code roomId} at {@code pos} would put it inside its own room,
      * directly or through nested rooms. Such a room would keep itself loaded forever.
      */
-    public boolean wouldNestInItself(UUID roomId, GlobalPos pos) {
+    public boolean wouldNestInItself(UUID roomId, GlobalPos pos, ResourceKey<Level> roomDimension) {
         GlobalPos at = pos;
-        for (int depth = 0; depth < MAX_NESTING && at.dimension() == RoomDimension.ROOM_DIM; depth++) {
+        for (int depth = 0; depth < MAX_NESTING && at.dimension() == roomDimension; depth++) {
             Room container = byChunk(new ChunkPos(at.pos().getX() >> 4, at.pos().getZ() >> 4)).orElse(null);
             if (container == null) return false;
             if (container.id().equals(roomId)) return true;
@@ -101,9 +104,43 @@ public class RoomData extends SavedData {
         });
     }
 
+    /** Records a redstone tunnel on {@code face}, replacing any redstone tunnel already at {@code pos}. Starts dark. */
+    public void setRedstoneTunnel(UUID id, Direction face, BlockPos pos, RedstoneMode mode) {
+        updateRedstone(id, redstone -> {
+            redstone.values().removeIf(tunnel -> tunnel.pos().equals(pos));
+            redstone.put(face, new RedstoneTunnel(pos, mode, 0));
+        });
+    }
+
+    public void removeRedstoneTunnel(UUID id, Direction face) {
+        updateRedstone(id, redstone -> redstone.remove(face));
+    }
+
+    /** Changes the direction; the stored signal resets to 0. */
+    public void setRedstoneMode(UUID id, Direction face, RedstoneMode mode) {
+        updateRedstone(id, redstone -> redstone.computeIfPresent(face, (f, tunnel) -> tunnel.withMode(mode)));
+    }
+
+    public void setRedstonePower(UUID id, Direction face, int power) {
+        updateRedstone(id, redstone -> redstone.computeIfPresent(face, (f, tunnel) -> tunnel.withPower(power)));
+    }
+
+    private void updateRedstone(UUID id, Consumer<Map<Direction, RedstoneTunnel>> change) {
+        update(id, room -> {
+            Map<Direction, RedstoneTunnel> redstone = new EnumMap<>(Direction.class);
+            redstone.putAll(room.redstone());
+            change.accept(redstone);
+            return room.withRedstone(redstone);
+        });
+    }
+
+    public void setEntry(UUID id, EntryPoint entry) {
+        update(id, room -> room.withEntry(Optional.of(entry)));
+    }
+
     /** Reserves a new grid slot. The caller builds the walls. */
     public Room allocate(int size) {
-        Room room = new Room(UUID.randomUUID(), nextGridIndex++, size, Optional.empty(), Map.of());
+        Room room = new Room(UUID.randomUUID(), nextGridIndex++, size, Optional.empty(), Map.of(), Map.of(), Optional.empty());
         put(room);
         setDirty();
         return room;

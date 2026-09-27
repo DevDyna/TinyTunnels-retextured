@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "tinytunnels:redstone_tunnel"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_tunnel": {
+      "conditions": {
+        "items": [
+          {
+            "items": "tinytunnels:tunnel"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_tunnel"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "tinytunnels:redstone_tunnel"
+    ]
+  }
+}

@@ -20,6 +20,7 @@ public final class ModCreativeTabs {
                 ModItems.MACHINES.values().forEach(output::accept);
                 output.accept(ModItems.SHRINKER);
                 output.accept(ModItems.TUNNEL);
+                output.accept(ModItems.REDSTONE_TUNNEL);
                 output.accept(ModItems.TUNNEL_WRENCH);
                 output.accept(ModItems.ROOM_WALL);
             })
