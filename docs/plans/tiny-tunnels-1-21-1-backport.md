@@ -297,6 +297,12 @@ Follow the seam rules above. When the MVP is tagged, note which files changed si
   - `runData` with the full mod gives exactly the B5 output (0 files written).
   - `./gradlew build` produces `tinytunnels-0.1.0+mc1.21.1.jar` with loader `[4,)`, NeoForge `[21.1.200,)` and Minecraft `[1.21.1]`.
   - The temporary `-Xmaxerrs` line in `build.gradle` has been removed.
+- **Beds (added 2026-09-27, 1.21.1 only):**
+  - The 1.21.1 dimension type can only turn beds off with `bed_works: false`, which makes them explode.
+  - `room/RoomBeds` denies bed use inside rooms (`RightClickBlock` → `setUseBlock(FALSE)`, plus an action-bar message), unless the server config `roomBedsExplode` (default `false`) is on.
+  - This matches 26.x, where beds simply don't work.
+  - GameTest `bed_refused_in_room`, so the suite is now 31 tests.
+  - `main` doesn't need it, because 26.x's `bed_rule` has `explodes: false`.
 - **Still manual (needs the client), checklist in `tiny-tunnels-1-21-1-testing.md`:**
   - B1's "client launches" check
   - the B3 in-game checks (see the B3 notes)

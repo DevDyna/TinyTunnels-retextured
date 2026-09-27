@@ -54,6 +54,7 @@ public final class TinyTunnelsGameTests {
         TESTS.put("entry_blocked_saved_exit", new Test(EntryGameTests::blockedSavedExitFallsBack, 100));
         TESTS.put("entry_blocked_centre", new Test(EntryGameTests::blockedCentreFindsClearSpot, 100));
         TESTS.put("entry_exit_outside_room", new Test(EntryGameTests::exitOutsideRoomIgnored, 100));
+        TESTS.put("bed_refused_in_room", new Test(EntryGameTests::bedRefusedInRoom, 100));
     }
 
     public static void register(IEventBus modEventBus) {

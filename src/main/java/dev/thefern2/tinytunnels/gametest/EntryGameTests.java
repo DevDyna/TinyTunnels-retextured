@@ -7,13 +7,22 @@ import dev.thefern2.tinytunnels.room.RoomData;
 import dev.thefern2.tinytunnels.room.RoomGeometry;
 import dev.thefern2.tinytunnels.teleport.RoomEntry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.util.TriState;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 
 /** Where players appear when entering a room that has been built in. */
 final class EntryGameTests {
@@ -65,6 +74,20 @@ final class EntryGameTests {
         Room room = newRoom(helper);
         RoomEntry.rememberExit(TestRooms.rooms(helper), room.geometry().min().getBottomCenter(), 0f, 0f);
         helper.assertTrue(reload(helper, room).entry().isEmpty(), "a wall position must not become the entry point");
+        helper.succeed();
+    }
+
+    /** With the default config, using a bed inside a room is refused instead of exploding. */
+    static void bedRefusedInRoom(GameTestHelper helper) {
+        Room room = newRoom(helper);
+        ServerLevel rooms = TestRooms.rooms(helper);
+        BlockPos bed = room.geometry().min().offset(2, 1, 2);
+        rooms.setBlock(bed, Blocks.RED_BED.defaultBlockState(), Block.UPDATE_ALL);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        var event = NeoForge.EVENT_BUS.post(new PlayerInteractEvent.RightClickBlock(player, InteractionHand.MAIN_HAND, bed,
+                new BlockHitResult(Vec3.atCenterOf(bed), Direction.UP, bed, false)));
+        helper.assertValueEqual(event.getUseBlock(), TriState.FALSE, "bed use inside a room");
+        helper.assertTrue(rooms.getBlockState(bed).is(BlockTags.BEDS), "the bed should still be there");
         helper.succeed();
     }
 

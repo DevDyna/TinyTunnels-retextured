@@ -21,6 +21,7 @@
   "jade.tinytunnels.redstone_tunnel": "Links to the %s side: %s %s",
   "jade.tinytunnels.redstone_tunnel.no_power": "Links to the %s side: %s",
   "jade.tinytunnels.tunnels": "Tunnels: %s",
+  "message.tinytunnels.bed.no_sleep": "You can't sleep inside a room",
   "message.tinytunnels.enter.no_room": "This machine has no room yet",
   "message.tinytunnels.exit.no_return": "Couldn't find the way back; sent to world spawn",
   "message.tinytunnels.machine.already_placed": "This machine's room is already in use by a machine at %s in %s",

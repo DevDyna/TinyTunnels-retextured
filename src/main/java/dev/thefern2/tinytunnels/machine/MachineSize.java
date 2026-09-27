@@ -1,5 +1,7 @@
 package dev.thefern2.tinytunnels.machine;
 
+import com.mojang.serialization.Codec;
+
 import net.minecraft.util.StringRepresentable;
 
 /**
@@ -14,7 +16,7 @@ public enum MachineSize implements StringRepresentable {
     GIANT("giant", 11),
     MAXIMUM("maximum", 13);
 
-    public static final StringRepresentable.EnumCodec<MachineSize> CODEC = StringRepresentable.fromEnum(MachineSize::values);
+    public static final Codec<MachineSize> CODEC = StringRepresentable.fromEnum(MachineSize::values);
 
     private final String name;
     private final int interior;

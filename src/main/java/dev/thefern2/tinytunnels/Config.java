@@ -13,6 +13,11 @@ public final class Config {
             .comment("How long the shrink animation lasts, in ticks.")
             .defineInRange("shrinkTicks", 10, 1, 40);
 
+    public static final ModConfigSpec.BooleanValue ROOM_BEDS_EXPLODE = BUILDER
+            .comment("Let beds used inside a room explode, like in the Nether (vanilla 1.21.1 behaviour for a dimension without beds).",
+                    "When false, beds inside rooms simply don't work.")
+            .define("roomBedsExplode", false);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 
     private Config() {}

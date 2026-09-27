@@ -15,7 +15,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
-@EventBusSubscriber(modid = TinyTunnels.MODID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = TinyTunnels.MODID)
 public final class DataGenerators {
     @SubscribeEvent
     static void gatherData(GatherDataEvent event) {

@@ -58,8 +58,10 @@ Manual checks for the 1.21.1 backport (`tiny-tunnels-1-21-1-backport.md`, B1–B
 4. Break the machine with a pickaxe in survival and pick it up.
    - [ ] It drops itself, and the tooltip says "Room" plus an 8-character id.
    - [ ] Placed again somewhere else, entering it shows the same room with the same contents.
-5. **Bed test.** Inside a room, place a bed and right-click it.
-   - [ ] The bed **explodes**, like in the Nether. This is expected on 1.21.1: the old dimension format has only `bed_works`, which makes beds explode when off. On 26.x beds simply don't work. If that's not acceptable, note it; blocking bed use in rooms needs code.
+5. **Bed test.** Inside a room, place a bed and right-click it with an empty hand, then while holding a block.
+   - [ ] Empty hand: nothing happens, no explosion, and the action bar says "You can't sleep inside a room".
+   - [ ] Holding a block: the block is placed against the bed.
+   - [ ] Set `roomBedsExplode = true` in `run/config/tinytunnels-server.toml` (a real instance: `config/tinytunnels-server.toml`), then reload the world. Now the bed **explodes**, like in the Nether. That's vanilla 1.21.1 behaviour for a dimension where beds don't work. Set it back to `false` afterwards.
 6. **Spawn fallback (no way back).** Run the command below, which builds a room and moves you in *without* a return point:
    ```
    /tinytunnels debug build 900 5

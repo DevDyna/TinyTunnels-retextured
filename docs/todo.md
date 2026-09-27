@@ -3,10 +3,9 @@
 One line per item; details are in `docs/todo/`. Items outside the phase plan (`docs/plans/tiny-tunnels-implementation.md`).
 
 - Limit nesting, maybe with a setting?
-- Able to duplicate rooms, say you make a redstone clock you should be able to dupe room
 - Spawning on blocks, how to safely spawin inside a machine without getting stuck?
     - Save position per player on exiting?
-- How to pick up rooms in creative?
+- How to pick up rooms in creative, how to delete, how to duplicate?
 - I still think machine needs letters outside before tunnels are added inside, it makes it hard to know what's what
 - On resorce reload error on 1.21 
 

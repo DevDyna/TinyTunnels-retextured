@@ -30,6 +30,7 @@ public class ModLanguageProvider extends LanguageProvider {
         add("tooltip.tinytunnels.machine.bound", "Room %s");
         add("message.tinytunnels.enter.no_room", "This machine has no room yet");
         add("message.tinytunnels.exit.no_return", "Couldn't find the way back; sent to world spawn");
+        add("message.tinytunnels.bed.no_sleep", "You can't sleep inside a room");
         add("message.tinytunnels.tunnel.mapped", "Tunnel linked to the machine's %s side");
         add("message.tinytunnels.tunnel.removed", "Tunnel removed");
         add("message.tinytunnels.tunnel.no_free_face", "Every other side already has a tunnel");
