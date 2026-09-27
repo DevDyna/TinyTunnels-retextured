@@ -107,6 +107,34 @@ Follow the seam rules above. When the MVP is tagged, note which files changed si
 4. Test mods: replace the 26.1.2 `localRuntime` pins with their 1.21.1 builds. Create **6.0.8** (Modrinth `88L641Un`) needs Flywheel `[1.0.0,2.0)` and Ponder `1.0.64` or newer.
 5. Check that the Client run config launches with the Example mod stripped.
 
+**B1 notes (done 2026-09-27):**
+
+- **`gradle.properties`:**
+  - `neo_version=21.1.217`, `neo_version_range=[21.1.200,)`, `loader_version_range=[4,)`
+  - `parchment_minecraft_version=1.21.1`, `parchment_mappings_version=2024.11.17`
+- **Mods.toml template:** gained `modLoader="javafml"` and `loaderVersion`, which FML 4 requires. The `neoforge` dependency now uses `${neo_version_range}`.
+- **`build.gradle`:**
+  - Java 21 toolchain, the `parchment {}` block, and `data()` in place of `clientData()`.
+  - `mavenCentral()` plus `compileOnly "org.jspecify:jspecify:1.0.0"`. Minecraft 26.x ships jspecify but 1.21.1 doesn't, and keeping the same annotations keeps cherry-picks clean.
+- **Test mods:** each one accepts NeoForge 21.1.217.
+  - Pipez `BPGKb8pi`, Energized Power `gGPYiXzr`, Storage Drawers `px0CCB06`
+  - Jade 15.10.6 `eYz2YBGT`, used for both `compileOnly` and runtime
+  - AE2 19.2.17 `kfyIqgJ6` with GuideME `hFpGwC6q`
+  - Mekanism 10.7.19.85 `5KzzycBT`
+  - Create 6.0.8 `88L641Un`, which bundles Flywheel 1.0.5, Ponder 1.0.64 and Registrate
+  - **JEI 19.39.0.372 `zHNxmOqp`**. Every JEI from 19.42 onward needs NeoForge 21.1.238. The 1.21.1 JEI doesn't need MezzConfig.
+- **CI:** `build.yml` uses JDK 21.
+- **Compile result:** the toolchain resolves. `compileJava` stops at javac's 100-error cap, and every error is an expected 26.x API:
+  - `Identifier` (B2)
+  - `ValueInput`/`ValueOutput`, `SavedDataType`, `TeleportTransition`, `Orientation`, `DataComponentGetter` (B3)
+  - `ResourceHandler`, `TransactionContext`, `EnergyHandler` and the resource classes (B4)
+  - `TooltipDisplay` (item tooltips, added in 1.21.5)
+  - GameTest classes (B6)
+- **Missing from the seam list:**
+  - `wall/ShellProtection` uses `BreakBlockEvent`. On 1.21.1 that's `BlockEvent.BreakEvent`. **Verify** the name.
+  - `TooltipDisplay` in the machine item and Jade tooltips.
+  - Handle both in B3.
+
 **Acceptance:** `./gradlew compileJava` fails only in the seam files.
 
 ### B2: Mechanical renames
@@ -114,6 +142,33 @@ Follow the seam rules above. When the MVP is tagged, note which files changed si
 `Identifier` → `ResourceLocation`, plus import fixes across the tree. Replace any Java 22+ syntax that slipped in.
 
 **Acceptance:** only seam files still fail to compile.
+
+**B2 notes (done 2026-09-27):**
+
+- **Renames and 1:1 API swaps:**
+  - `Identifier` → `ResourceLocation`, and `dimension().identifier()` → `dimension().location()`
+  - `player.sendOverlayMessage(c)` → `player.displayClientMessage(c, true)`
+  - `Commands.hasPermission(level)` → `source -> source.hasPermission(level)`
+  - `new ClickEvent.SuggestCommand(s)` / `new HoverEvent.ShowText(c)` → `new ClickEvent(Action.SUGGEST_COMMAND, s)` / `new HoverEvent(Action.SHOW_TEXT, c)`
+  - Jade `CompoundTag` reads: the 26.x `Optional`/`getIntOr` versions → `contains` + `getString`/`getInt`
+  - Item cooldowns take the `Item` (`this`), not the `ItemStack`
+  - `MachineItem.appendHoverText` uses the 1.21.1 `List<Component>` signature, so there's no `TooltipDisplay`
+  - `updateNeighborsAtExceptFromFacing` has no `Orientation` argument
+  - `RoomDimension`: `ServerModLoader.isGameTestServer()` → `server instanceof GameTestServer`
+- **Temporary:** `build.gradle` sets `-Xmaxerrs 1000`, so every error shows. It's marked `TODO(backport)`; remove it once the code compiles.
+- **What's left:** 121 errors. javac prints each one twice, so its count says 242. Grouped by the phase that fixes them:
+  - **B3** (persistence, teleport, lifecycle, attachments, **plus registration**, which wasn't in the original list):
+    - `MachineCore`, `MachineBlockEntity`: `ValueInput`/`ValueOutput`, `DataComponentGetter`, `preRemoveSideEffects`
+    - `MachineBlock`, `RoomWallBlock`, `RedstoneTunnelWallBlock`: `Orientation`, `affectNeighborsAfterRemoval`, `useItemOn` / `TRY_WITH_EMPTY_HAND`
+    - `RoomData`: `SavedDataType`
+    - `RoomTeleporter`, `TinyTunnelsCommand`: `TeleportTransition`, `RespawnData`
+    - `ShrinkerItem`: `use` returns `InteractionResultHolder<ItemStack>`
+    - `ModAttachments`: `serialize(Codec)`
+    - `ShellProtection`: `BreakBlockEvent` → `BlockEvent.BreakEvent`
+    - **Registration** (`ModBlocks`, `ModItems`, `ModBlockEntities`): `registerBlock(name, factory, Properties)` takes a `Properties` value, not a function; there's no `useBlockDescriptionPrefix`; and block entity types are built with `BlockEntityType.Builder.of(...).build(null)`.
+  - **B4:** `TransferKind`, `GuardedResourceHandler`, `GuardedEnergyHandler`
+  - **B5:** everything in `datagen/`
+  - **B6:** everything in `gametest/`
 
 ### B3: Persistence, teleport, lifecycle, attachments
 
@@ -127,6 +182,37 @@ Follow the seam rules above. When the MVP is tagged, note which files changed si
 
 **Acceptance:** Phases 1–5 acceptance checks pass on 1.21.1.
 
+**B3 notes (code done 2026-09-27; acceptance waits until B4–B6 compile):**
+
+- **Machine save/load:** `MachineCore.load/save(CompoundTag)`. The room id is stored with `putUUID("room")`, the same int-array format as the 26.x `UUIDUtil.CODEC`.
+  - `BlockEntity.DataComponentInput` is a protected nested type, so the core can't take it. On this branch the core has `applyImplicitRoom(@Nullable UUID)`, and `MachineBlockEntity` reads the component and passes the UUID in.
+- **Removal:** 1.21.1 has no `preRemoveSideEffects` / `affectNeighborsAfterRemoval`, so each block overrides `onRemove(state, level, pos, newState, movedByPiston)`, guarded by `!state.is(newState.getBlock())`:
+  - `MachineBlock` calls `core().preRemoveSideEffects(pos)` **before** `super.onRemove`, because `super` removes the block entity. After `super`, it re-notifies the faces it strongly powered.
+  - `RoomWallBlock` calls `ShellProtection.onShellRemoved` after `super`. `TunnelWallBlock` inherits this.
+  - `RedstoneTunnelWallBlock` calls `super` (the shell repair), then `notifyEmitter`.
+  - `MachineBlockEntity` no longer overrides a removal hook.
+- **`neighborChanged`:** takes the 1.21.1 parameters `(…, Block neighborBlock, BlockPos neighborPos, boolean)`.
+- **Redstone tunnel `useItemOn`:** returns `ItemInteractionResult`:
+  - empty hand → `PASS_TO_DEFAULT_BLOCK_INTERACTION` (goes on to `useWithoutItem`, which flips the mode)
+  - anything else → `SKIP_DEFAULT_BLOCK_INTERACTION` (goes on to the item's own use, the same as 26.x `PASS`)
+  - `useWithoutItem` returns `InteractionResult.sidedSuccess(...)`.
+- **`ShrinkerItem.use`:** returns `InteractionResultHolder<ItemStack>`.
+- **`RoomData`:** `SavedData.Factory(RoomData::new, RoomData::load, null)` in **overworld** storage, as the file `tinytunnels_rooms.dat`. The same `CODEC` runs through `NbtOps` with the registry context, both ways.
+- **Teleport:**
+  - `RoomTeleporter.teleport(player, level, pos, yRot, xRot)` is now the only way players are moved. It wraps the boolean `teleportTo(level, x, y, z, Set.of(), yRot, xRot)`, which lets a failed entry still restore the return stack. The debug `build` command uses it too.
+  - The world-spawn fallback uses `overworld.getSharedSpawnPos()` / `getSharedSpawnAngle()`, since there's no `RespawnData`.
+- **Attachments:** `serialize(ReturnStack.MAP_CODEC.codec())`.
+- **Registration:**
+  - `registerBlock(name, factory, BlockBehaviour.Properties.of()…)`, where `wallProperties()` now builds its own `Properties`.
+  - `registerItem(name, factory[, new Item.Properties()…])`. Block items don't need `useBlockDescriptionPrefix`.
+  - `BlockEntityType.Builder.of(factory, blocks…).build(null)`.
+- **Events:** `ShellProtection` listens to `BlockEvent.BreakEvent`.
+- **Check in game once it runs (behaviour that could differ):**
+  - breaking a machine re-powers and de-powers its neighbours correctly
+  - wrenching a tunnel back to a room wall doesn't make the shell repair put the old block back (`ShellProtection.edit` should cover this)
+  - the empty-hand flip on the redstone tunnel works, and placing blocks against it still works
+  - Shrinker exit with no return point lands at world spawn
+
 ### B4: Transfer layer
 
 - Rewrite `TunnelCapabilities` for `Capabilities.ItemHandler`, `FluidHandler` and `EnergyStorage`.
@@ -135,6 +221,18 @@ Follow the seam rules above. When the MVP is tagged, note which files changed si
 - Keep caching, invalidation (including `updateNeighborsAt`) and endpoint rules unchanged.
 
 **Acceptance:** Phase 6a acceptance passes on 1.21.1.
+
+**B4 notes (code done 2026-09-27; acceptance waits until B6 compiles):**
+
+- **`TransferKind`:**
+  - `ITEM` = `Capabilities.ItemHandler.BLOCK` / `EmptyItemHandler.INSTANCE`
+  - `FLUID` = `Capabilities.FluidHandler.BLOCK` / `EmptyFluidHandler.INSTANCE`
+  - `ENERGY` = `Capabilities.EnergyStorage.BLOCK` / `EmptyEnergyStorage.INSTANCE`
+- **Guarded handlers:** `GuardedResourceHandler` and `GuardedEnergyHandler` are replaced by three plain delegates, `GuardedItemHandler`, `GuardedFluidHandler` and `GuardedEnergyStorage`.
+  - They forward every method 1:1, with `simulate` / `FluidAction` passed through unchanged.
+  - Only insert/extract, fill/drain and receive/extract go through `ProxyGuard`.
+  - Past the depth limit they accept nothing: the item insert returns the stack, and extract/drain return empty or 0.
+- **Unchanged:** `ProxyGuard`, `TunnelCapabilities`, `EndpointCaches` and `CapabilityUpdates`. They're generic over `TransferKind`, so the seam held.
 
 ### B5: Data and assets
 
@@ -149,6 +247,27 @@ Follow the seam rules above. When the MVP is tagged, note which files changed si
 
 **Acceptance:** `runData` works and the dimension loads with no codec errors.
 
+**B5 notes (done 2026-09-27; the dimension load is checked with B6/in game):**
+
+- **Models:** `ModModelProvider` now extends NeoForge's `BlockStateProvider`, and item models go through `itemModels()`.
+  - Machines: a multipart of the `cube_all` base plus the hand-written port overlays (`models().getExistingFile`), with conditions on `PortKind`. That's 19 parts.
+  - Tunnel walls: `forAllStates` over `FACE` (36 variants).
+  - Redstone tunnel walls: `forAllStates` over `FACE`/`MODE`/`POWERED` (144 variants).
+  - `simpleBlockWithItem` for the room wall, and `simpleBlockItem` for the machine items.
+  - Items: `basicItem` for the Shrinker and the two tunnels, `handheldItem` for the wrench.
+- **`DataGenerators`:**
+  - One `GatherDataEvent` on the mod bus (`bus = MOD`), with `generator.addProvider(include…, …)`.
+  - The item tags need the block tags' `contentsGetter()`.
+  - The tag providers take an `ExistingFileHelper`.
+- **Recipes:** `ModRecipeProvider(PackOutput, CompletableFuture<Provider>)` with `buildRecipes(RecipeOutput)`, `ShapedRecipeBuilder` / `ShapelessRecipeBuilder`, and no `Runner`. The recipes are unchanged, including redstone dust instead of the ender pearl.
+- **Loot:** `CopyComponentsFunction.copyComponents(Source.BLOCK_ENTITY)`.
+- **Dimension type:** rewritten in the 1.21.1 flat format listed above.
+- **Generated output:** `src/generated` was deleted and regenerated, 86 files.
+  - Compared with 26.x: the `assets/*/items/*.json` item definitions are gone, replaced by `models/item/*` for all 11 items.
+  - Recipes use the 1.21.1 `{"item": …}` / `{"tag": …}` ingredient objects.
+  - Lang, loot tables, tags and block models are identical.
+- **How it was run:** the GameTests didn't compile yet, so they were moved aside for the one `runData` run and put back straight after. Rerun `runData` after B6 to confirm nothing changes.
+
 ### B6: Tests on 1.21.1
 
 1. Port the GameTests to the 1.21.1 format, including `RedstoneGameTests` (T1–T10 plus the shell-repair regression). Same cases; the transaction tests become simulate tests.
@@ -162,6 +281,33 @@ Follow the seam rules above. When the MVP is tagged, note which files changed si
    - **Compact Machines 7 installed alongside**: both mods load, their dimensions don't collide, and a CM machine inside a Tiny Tunnels room works.
 
 **Acceptance:** all Phase 6b cases pass, and the mod matrix shows no void, no dupe and no crash.
+
+**B6 notes (GameTests done 2026-09-27; the manual mod matrix is still to do):**
+
+- **Registration:** `TinyTunnelsGameTests` keeps the same name → function map. It's registered through `RegisterGameTestsEvent.register(TinyTunnelsGameTests.class)`, and a `@GameTestGenerator` builds one `TestFunction` per entry:
+  - named `tinytunnels.<name>`
+  - structure `tinytunnels:empty_5x5x5`
+  - batch `tinytunnels`, required, same tick limits as before
+  - The generated tests pass the `neoforge.enabledGameTestNamespaces=tinytunnels` filter because their structure is in the `tinytunnels` namespace.
+- **Handler helpers:** `TestRooms.insert(IItemHandler, ItemStack)` (via `ItemHandlerHelper.insertItem`, executed) and `TestRooms.fill(IFluidHandler, FluidStack)`. The tests use the 1.21.1 capabilities and empty handlers (`EmptyItemHandler.INSTANCE`, `EmptyEnergyStorage.INSTANCE`).
+- **`rollback` became `simulate_no_side_effects`:** a simulated insert of 5 reports everything accepted, and the chest inside stays empty. The plan's other simulate case, "remove the tunnel between the simulate and execute calls", isn't written yet; add it with the mod matrix if it's wanted.
+- **Redstone test `click`:** follows 1.21.1's `ItemInteractionResult`. `PASS_TO_DEFAULT_BLOCK_INTERACTION` → `useWithoutItem`, then the item's `useOn`.
+- **Result:** `runGameTestServer`: **all 30 required tests pass** on 1.21.1. That's the same 30 tests `main` registers; the 26.x run counts 31 because its test server runs one extra test that isn't ours.
+- **Other checks:**
+  - `runData` with the full mod gives exactly the B5 output (0 files written).
+  - `./gradlew build` produces `tinytunnels-0.1.0+mc1.21.1.jar` with loader `[4,)`, NeoForge `[21.1.200,)` and Minecraft `[1.21.1]`.
+  - The temporary `-Xmaxerrs` line in `build.gradle` has been removed.
+- **Beds (added 2026-09-27, 1.21.1 only):**
+  - The 1.21.1 dimension type can only turn beds off with `bed_works: false`, which makes them explode.
+  - `room/RoomBeds` denies bed use inside rooms (`RightClickBlock` → `setUseBlock(FALSE)`, plus an action-bar message), unless the server config `roomBedsExplode` (default `false`) is on.
+  - This matches 26.x, where beds simply don't work.
+  - GameTest `bed_refused_in_room`, so the suite is now 31 tests.
+  - `main` doesn't need it, because 26.x's `bed_rule` has `explodes: false`.
+- **Still manual (needs the client), checklist in `tiny-tunnels-1-21-1-testing.md`:**
+  - B1's "client launches" check
+  - the B3 in-game checks (see the B3 notes)
+  - the mod matrix above: Create 6.0.8, Mekanism 10.7, AE2, Pipez, Storage Drawers, and Compact Machines 7 alongside
+  - Compact Machines 7 isn't in `build.gradle` yet; add it when running that step.
 
 ### B7: Release and maintenance
 
