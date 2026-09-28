@@ -17,6 +17,16 @@ One line per item; details are in `docs/todo/`. Items outside the phase plan (`d
 | Debug config flag, split admin vs debug commands, remove `TT-DEBUG` logs | S | [debug-output](todo/debug-output.md) |
 | Catch players and items falling out of rooms | S | [void-safety](todo/void-safety.md) |
 
+## Backlog (1.21.1 backport, to prioritize)
+
+- **Blocking:** buffered tunnel mode, so pipe → tunnel → pipe works for items and fluids (`plans/tiny-tunnels-buffered-tunnels.md`). `main` first, then port.
+- In-game pass on 1.21.1 (`plans/tiny-tunnels-1-21-1-testing.md`), especially 6a-inside (Create factories) and the mod matrix.
+- CI: add a timeout to the GameTest step in `.github/workflows/build.yml`, so a rare 1.21.1 shutdown hang fails fast.
+- Flaky GameTest `redstone_item_and_ports`: fails about 1 in 10 runs with a null `actual`, likely a timing race.
+- Debug cleanup after testing: remove `loading/ShutdownWatchdog` and the `[TT-DEBUG]` logs in `MachineCore` and `RoomTickets` (goes with the debug-output item above).
+- Apply `docs/patches/to-main.md` on `main`: the cauldron GameTests (redo with transactions) and the `MachineSize` codec (copy). Then `scripts/sync-docs.sh`.
+- B8: kinetic tunnel with Create 6.0.8 (`plans/tiny-tunnels-kinetic-tunnel.md`).
+
 ## Planned phases, for context
 
 From `docs/plans/tiny-tunnels-implementation.md`:

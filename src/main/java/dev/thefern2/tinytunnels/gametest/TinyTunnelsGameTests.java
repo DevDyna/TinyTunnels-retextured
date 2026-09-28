@@ -28,6 +28,8 @@ public final class TinyTunnelsGameTests {
         TESTS.put("hopper_outside_in", new Test(TunnelGameTests::hopperOutsideIn, 200));
         TESTS.put("hopper_inside_out", new Test(TunnelGameTests::hopperInsideOut, 300));
         TESTS.put("fluid_into_cauldron", new Test(TunnelGameTests::fluidIntoCauldron, 100));
+        TESTS.put("fluid_out_of_cauldron", new Test(TunnelGameTests::fluidOutOfCauldron, 100));
+        TESTS.put("fluid_partial_refused", new Test(TunnelGameTests::fluidPartialRefused, 100));
         TESTS.put("empty_versus_null", new Test(TunnelGameTests::emptyVersusNull, 100));
         TESTS.put("pipe_before_tunnel", new Test(TunnelGameTests::pipeBeforeTunnel, 100));
         TESTS.put("hot_swap", new Test(TunnelGameTests::hotSwap, 100));

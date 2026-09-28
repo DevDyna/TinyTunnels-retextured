@@ -76,6 +76,8 @@ neoForge {
         gameTestServer {
             type = "gameTestServer"
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            // Its own directory, so GameTests never share run/world with runServer or the other branch.
+            gameDirectory = project.file('run/gametest')
         }
 
         data {
@@ -110,6 +112,15 @@ neoForge {
         "${mod_id}" {
             sourceSet(sourceSets.main)
         }
+    }
+}
+
+// Every GameTest run starts from a fresh world. Tests are built at random far-off spots, so a kept
+// world grows with each run.
+def gameTestWorld = file('run/gametest/world')
+tasks.named('runGameTestServer') {
+    doFirst {
+        gameTestWorld.deleteDir()
     }
 }
 

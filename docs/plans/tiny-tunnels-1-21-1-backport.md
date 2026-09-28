@@ -303,6 +303,14 @@ Follow the seam rules above. When the MVP is tagged, note which files changed si
   - This matches 26.x, where beds simply don't work.
   - GameTest `bed_refused_in_room`, so the suite is now 31 tests.
   - `main` doesn't need it, because 26.x's `bed_rule` has `explodes: false`.
+- **GameTest shutdown hang (found 2026-09-28, 1.21.1 only, test harness):**
+  - **Symptom:** sometimes, after "All N required tests passed", the GameTest server never exits. It's stuck in `stopServer`'s wait-for-unloads loop: `ChunkMap.processUnloads` keeps re-queuing `scheduleUnload` for a chunk that isn't `isReadyForSaving()`, on the main thread that chunk still needs.
+  - **Cause of the high rate:** the 1.21.1 GameTest server reuses the `level-name` world (`run/world`), which grew with every run (341 MB) and was shared with `runServer` and with `main`.
+  - **Fix for that:** `build.gradle` gives `gameTestServer` its own `run/gametest/` directory and deletes its world before each run. The hang rate went from about 2 in 3 to 1 in 15.
+  - **Ruled out:** the new cauldron tests, the test mods (Create, Mekanism and others), and releasing or freezing room tickets at shutdown. Both ticket changes made it worse.
+  - **`main` (26.x):** 10 of 10 clean. 26.x resets its own `gametestserver/gametestworld`, and its chunk system is different.
+  - **Debug:** `loading/ShutdownWatchdog` (`TODO(debug)`) logs the chunks still pending unload if a stop takes over 10 s. Remove it once a hang has been captured or ruled out.
+  - **CI:** its checkout gives a fresh world anyway. Still, add a timeout to the GameTest step.
 - **Still manual (needs the client), checklist in `tiny-tunnels-1-21-1-testing.md`:**
   - B1's "client launches" check
   - the B3 in-game checks (see the B3 notes)

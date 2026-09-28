@@ -21,6 +21,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -111,6 +112,41 @@ final class TunnelGameTests {
         helper.assertTrue(fluid != null, "no fluid handler on the machine's east face");
         helper.assertValueEqual(TestRooms.fill(fluid, new FluidStack(Fluids.WATER, 1000)), 1000, "water inserted");
         helper.assertTrue(rooms.getBlockState(inside).is(Blocks.WATER_CAULDRON), "cauldron inside should be full of water");
+        helper.succeed();
+    }
+
+    /** A full water cauldron inside drains through the machine face: the whole 1000 mB comes out and it empties. */
+    static void fluidOutOfCauldron(GameTestHelper helper) {
+        MachineHost machine = TestRooms.placeMachine(helper, MACHINE);
+        Room room = TestRooms.room(helper, machine);
+        BlockPos inside = TestRooms.addTunnel(helper, room, Direction.EAST, TestRooms.wallCenter(room.geometry(), Direction.WEST));
+        ServerLevel rooms = TestRooms.rooms(helper);
+        rooms.setBlock(inside, Blocks.WATER_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, LayeredCauldronBlock.MAX_FILL_LEVEL), Block.UPDATE_ALL);
+        IFluidHandler fluid = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(MACHINE), Direction.EAST);
+        helper.assertTrue(fluid != null, "no fluid handler on the machine's east face");
+        FluidStack simulated = fluid.drain(new FluidStack(Fluids.WATER, 1000), IFluidHandler.FluidAction.SIMULATE);
+        helper.assertValueEqual(simulated.getAmount(), 1000, "water the simulated drain reports");
+        helper.assertTrue(rooms.getBlockState(inside).is(Blocks.WATER_CAULDRON), "a simulated drain must leave the cauldron full");
+        FluidStack drained = fluid.drain(new FluidStack(Fluids.WATER, 1000), IFluidHandler.FluidAction.EXECUTE);
+        helper.assertTrue(drained.getFluid() == Fluids.WATER, "drained fluid should be water");
+        helper.assertValueEqual(drained.getAmount(), 1000, "water drained");
+        helper.assertTrue(rooms.getBlockState(inside).is(Blocks.CAULDRON), "cauldron inside should be empty");
+        helper.succeed();
+    }
+
+    /** A fill the block inside can't take (500 mB into a cauldron) reports 0 and changes nothing. */
+    static void fluidPartialRefused(GameTestHelper helper) {
+        MachineHost machine = TestRooms.placeMachine(helper, MACHINE);
+        Room room = TestRooms.room(helper, machine);
+        BlockPos inside = TestRooms.addTunnel(helper, room, Direction.EAST, TestRooms.wallCenter(room.geometry(), Direction.WEST));
+        ServerLevel rooms = TestRooms.rooms(helper);
+        rooms.setBlock(inside, Blocks.CAULDRON.defaultBlockState(), Block.UPDATE_ALL);
+        IFluidHandler fluid = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(MACHINE), Direction.EAST);
+        helper.assertTrue(fluid != null, "no fluid handler on the machine's east face");
+        FluidStack half = new FluidStack(Fluids.WATER, 500);
+        helper.assertValueEqual(fluid.fill(half, IFluidHandler.FluidAction.SIMULATE), 0, "simulated fill of 500 mB");
+        helper.assertValueEqual(fluid.fill(half, IFluidHandler.FluidAction.EXECUTE), 0, "fill of 500 mB");
+        helper.assertTrue(rooms.getBlockState(inside).is(Blocks.CAULDRON), "cauldron inside should still be empty");
         helper.succeed();
     }
 

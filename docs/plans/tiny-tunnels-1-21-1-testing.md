@@ -31,6 +31,10 @@ Manual checks for the 1.21.1 backport (`tiny-tunnels-1-21-1-backport.md`, B1–B
   /give @s tinytunnels:shrinker
   ```
 - **How to count items:** for "nothing lost, nothing duplicated", start with a known number (for example 64 cobblestone). Check that the total across source and destination stays 64. Jade shows container contents when you look at them.
+- **Same test blocks as 26.x:** fluid and energy steps use the same Energized Power blocks as `tiny-tunnels-phase-6a-testing.md`, so results compare directly: Creative Fluid Tank and Fluid Tank (Small), Creative Battery Box and Battery Box.
+- **Pipez extraction:** Pipez pipes only push into blocks. To pull from a block, set that pipe connection to **extract** (sneak + right-click the connection with the **Pipe Wrench**, or use the pipe's GUI).
+  - With a Pipez pipe on **both** sides of a tunnel, the far pipe's connection to the machine face (or, inside, to the tunnel wall) must also be set to extract, or nothing moves.
+  - That's a Pipez rule, not a bug: a tunnel keeps the two pipes as separate networks, and a Pipez network only takes input through extracting connections. Details are in `tiny-tunnels-phase-6a-testing.md`.
 
 ## 1. Client launch and basics (B1, B5)
 
@@ -76,6 +80,35 @@ Manual checks for the 1.21.1 backport (`tiny-tunnels-1-21-1-backport.md`, B1–B
    - [ ] Nothing moved inside while you were away.
    - [ ] Back near the machine, the log shows `machine onLoad` and `ticket ADD`, and the room starts working again by itself.
    - [ ] For comparison, a machine **near spawn** stays loaded while you're away. That's expected on 1.21.1 (see "Spawn chunks" in 6a-inside).
+8. **Machine broken while you're inside.** This stands in for another player, a quarry or a Create drill breaking it.
+   - **Setup:** a machine with an item tunnel (chest outside, hopper inside feeding the wall) and a redstone **in** tunnel (lever outside, lamp inside, lever on).
+   - **Break it from inside:** enter the room, list rooms to get the machine's position (`host: x, y, z in minecraft:overworld`), then break it as if mined. The item drops on the ground outside.
+   ```
+   /tinytunnels debug rooms
+   ```
+   ```
+   /execute in minecraft:overworld run setblock <x> <y> <z> minecraft:air destroy
+   ```
+   - [ ] No crash. You stay in the room, and everything inside is still there.
+   - [ ] The lamp inside turns off. The hopper stops emptying into the wall, and its items stay in the hopper (nothing voided).
+   - [ ] `/tinytunnels debug rooms` shows `host: not placed` for this room.
+   - Now use the Shrinker on the air to leave.
+   - [ ] You land where you entered from, next to where the machine stood. The machine item lies there, and its tooltip shows the same room id.
+   - Pick it up and place it one block over.
+   - [ ] Entering it gives the same room. The tunnels work again (hopper empties into the chest outside, lamp follows the lever), with no re-placing inside.
+9. **A second copy of the same room is refused.** While the machine from step 8 is placed, get another machine bound to the same room (the id is in `/tinytunnels debug rooms`; click it to fill in the command) and try to place it.
+   ```
+   /tinytunnels debug give <room-id>
+   ```
+   - [ ] Placement is refused, and the action bar says "This machine's room is already in use by a machine at …". Only one machine can host a room at a time, so a copy can't be used to dupe it.
+10. **Nested: outer machine broken while you're in an inner room.** Put a second machine inside the first room and enter it (you're now two rooms deep). Break the **outer** machine from there, using the step 8 commands with the outer room's host.
+    - [ ] No crash. The inner room keeps working while you're in it.
+    - [ ] Using the Shrinker takes you out one level at a time: first into the outer room, then to where you entered it from, with the outer machine item on the ground there.
+11. **Explosions don't break machines.** Outside, next to a machine, run the command below and stand back.
+    ```
+    /summon minecraft:tnt ~ ~ ~ {fuse:40}
+    ```
+    - [ ] The machine survives (it's blast-proof), and its room is untouched.
 
 ## 3. Tunnels with vanilla blocks (B3, B4)
 
@@ -85,8 +118,16 @@ Manual checks for the 1.21.1 backport (`tiny-tunnels-1-21-1-backport.md`, B1–B
    - [ ] All 64 end up in the chest inside. The hopper is empty.
 3. Inside, point a **hopper** into the tunnel wall (hopper facing the wall). Outside, put a chest against the matching machine face.
    - [ ] Items arrive in the chest outside, with the count unchanged.
-4. Put a **cauldron** behind a tunnel inside. Outside, right-click the matching machine face with a **water bucket**. Vanilla buckets don't use capabilities, so if nothing happens, do this in the Create or Mekanism step with a pump or pipe instead.
-   - [ ] (with a pipe or pump) The cauldron fills with water.
+4. **Fluids through a tunnel, with Pipez.** Same setup as `tiny-tunnels-phase-6a-testing.md`, section 4.
+   - **Why not a bucket:** a water bucket can't be emptied into a machine face or tunnel wall. Vanilla buckets place water in the world and never use a block's fluid capability, so that's expected.
+   - **Why not a cauldron:** a cauldron only takes or gives a whole 1000 mB at once, so a pipe never fills it. The `fluid_into_cauldron` GameTest covers the cauldron.
+   - **Outside:** an Energized Power **Creative Fluid Tank** (the magenta "C" block), connected by a Pipez **Fluid Pipe** to a machine face with a tunnel.
+     - **Setting its fluid on 1.21.1:** right-clicking the tank with a bucket does **nothing**. Right-click it with an **empty hand** to open its GUI, pick up a water bucket onto your cursor, and click the tank's fluid bar. The bar shows water once it's set. An empty creative tank moves nothing, which looks exactly like a broken tunnel.
+     - **Extract:** sneak + right-click the pipe's **arm** (the connection piece) touching the tank with the Pipez **Pipe Wrench**. A square flange appears on that arm. Sneak-clicking the same arm again turns extraction off **and disconnects** it; sneak-click the pipe's centre to reconnect.
+     - **Face match:** the tunnel inside must be mapped to the machine face the pipe touches (Jade on the machine lists the tunnel letters).
+   - **Inside:** an Energized Power **Fluid Tank (Small)** touching the matching tunnel.
+   - [ ] The small tank fills with water.
+   - [ ] Remove the small tank, then put it back. Filling stops, then resumes, with no error in the log.
 5. Right-click the tunnel wall with the Tunnel Wrench.
    - [ ] It moves to the next free machine side. The letter and colour change.
 6. Sneak and right-click the tunnel wall with the Tunnel Wrench.
@@ -200,8 +241,10 @@ Power the network with a Creative Energy Cell and connect it with cables.
 
 1. **Pipez item pipe** from a chest into the machine face (pipe set to extract at the chest). Inside: a **Storage Drawer** behind the tunnel.
    - [ ] Items fill the drawer, including past one stack. Drawers have odd slot sizes.
-2. **Pipez fluid and energy pipes** into their own machine faces.
-   - [ ] Both arrive inside.
+2. **Pipez energy pipe.** Same setup as `tiny-tunnels-phase-6a-testing.md`, section 5. Outside, an Energized Power **Creative Battery Box**, connected by a Pipez **Energy Pipe** (set to extract from the box) to a machine face with a tunnel. Inside, a **Battery Box** touching that tunnel.
+   - [ ] The Battery Box charges. Check with Jade.
+   - [ ] Reverse it (Creative Battery Box and extracting pipe inside, Battery Box outside). It charges too.
+   - Fluids with Pipez are covered in step 3.4.
 3. **Pipe loop.** Run a Pipez item pipe from the machine's N face around to its S face, with tunnels on both. Inside, connect the two tunnels with another pipe.
    - [ ] No crash and no freeze. At most one "Tunnel proxy depth limit" warning in the log.
 
