@@ -5,6 +5,7 @@ import dev.thefern2.tinytunnels.machine.MachineBlock;
 import dev.thefern2.tinytunnels.machine.MachineBlockEntity;
 import dev.thefern2.tinytunnels.tunnel.RedstoneTunnelBlockEntity;
 import dev.thefern2.tinytunnels.tunnel.RedstoneTunnelWallBlock;
+import dev.thefern2.tinytunnels.tunnel.TunnelBlockEntity;
 import dev.thefern2.tinytunnels.tunnel.TunnelWallBlock;
 import net.minecraft.resources.ResourceLocation;
 import snownee.jade.api.IWailaClientRegistration;
@@ -26,6 +27,7 @@ public class TinyTunnelsJadePlugin implements IWailaPlugin {
     public void register(IWailaCommonRegistration registration) {
         registration.registerBlockDataProvider(ServerData.MACHINE, MachineBlockEntity.class);
         registration.registerBlockDataProvider(ServerData.REDSTONE_TUNNEL, RedstoneTunnelBlockEntity.class);
+        registration.registerBlockDataProvider(ServerData.TUNNEL, TunnelBlockEntity.class);
     }
 
     @Override

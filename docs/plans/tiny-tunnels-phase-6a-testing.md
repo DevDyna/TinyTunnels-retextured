@@ -32,8 +32,10 @@ Manual checks for Phase 6a of `tiny-tunnels-implementation.md`: unbreakable shel
 
 **Pipez extraction:** Pipez pipes only push into blocks. To pull from a block, set that pipe connection to extract (in Pipez, sneak + right-click the connection with the **Pipe Wrench**, or open the pipe's GUI). Each step says which side extracts.
 
-**Pipe → tunnel → pipe needs two extracts (correct, a Pipez rule; verified 2026-09-26).** A tunnel is invisible to pipes: pushing into a tunnel is pushing straight into whatever touches the matching machine face on the other side. A Pipez pipe only accepts input on connections set to **extract**, since those are its network's inputs. Normal connections only push out.
-- With a pipe on **both** sides of a tunnel, the far pipe's connection to the machine face (or to the tunnel, inside) must **also** be set to extract, or nothing moves. Directly touching Pipez pipes would just merge into one network; the tunnel keeps them as two separate networks.
+**Pipe → tunnel → pipe (corrected 2026-09-28): energy only in pass-through mode.** A pass-through tunnel is invisible to pipes: pushing into a tunnel is pushing straight into whatever touches the matching machine face on the other side. A Pipez pipe only accepts input on connections set to **extract**, since those are its network's inputs. Normal connections only push out.
+- **Energy:** with a pipe on **both** sides of a tunnel, set the far pipe's connection to the machine face (or to the tunnel, inside) to extract too. This works because Pipez exposes a real energy storage on extracting sides, and it was what was verified on 2026-09-26.
+- **Items and fluids:** on extracting sides Pipez exposes only dummy handlers that hold nothing, so pipe → pass-through tunnel → pipe **never moves anything**. This was verified on both 26.x and 1.21.1 on 2026-09-28. The fix is **buffered tunnels** (`tiny-tunnels-buffered-tunnels.md`).
+- Directly touching Pipez pipes would just merge into one network; the tunnel keeps them as two separate networks.
 - With a **block** on the far side (Battery Box, chest, tank) touching the face, no extra setting is needed.
 - Compact Machines tunnels behaved the same way with Pipez.
 

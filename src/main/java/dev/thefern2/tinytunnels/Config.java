@@ -18,7 +18,24 @@ public final class Config {
                     "When false, beds inside rooms simply don't work.")
             .define("roomBedsExplode", false);
 
+    public static final ModConfigSpec.IntValue BUFFER_ITEM_SLOTS = BUILDER
+            .comment("Item stacks a buffered tunnel holds. Only affects tunnels created after a change; existing contents are kept.")
+            .defineInRange("bufferItemSlots", 1, 1, 9);
+
+    public static final ModConfigSpec.IntValue BUFFER_FLUID_CAPACITY = BUILDER
+            .comment("Fluid (mB) a buffered tunnel holds.")
+            .defineInRange("bufferFluidCapacity", 8000, 1000, 64000);
+
     static final ModConfigSpec SPEC = BUILDER.build();
+
+    /** Server config values aren't loaded on a client or before the world starts; fall back to the defaults there. */
+    public static int bufferItemSlots() {
+        return SPEC.isLoaded() ? BUFFER_ITEM_SLOTS.getAsInt() : BUFFER_ITEM_SLOTS.getDefault();
+    }
+
+    public static int bufferFluidCapacity() {
+        return SPEC.isLoaded() ? BUFFER_FLUID_CAPACITY.getAsInt() : BUFFER_FLUID_CAPACITY.getDefault();
+    }
 
     private Config() {}
 }

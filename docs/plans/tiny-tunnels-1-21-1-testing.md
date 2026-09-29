@@ -33,8 +33,10 @@ Manual checks for the 1.21.1 backport (`tiny-tunnels-1-21-1-backport.md`, B1–B
 - **How to count items:** for "nothing lost, nothing duplicated", start with a known number (for example 64 cobblestone). Check that the total across source and destination stays 64. Jade shows container contents when you look at them.
 - **Same test blocks as 26.x:** fluid and energy steps use the same Energized Power blocks as `tiny-tunnels-phase-6a-testing.md`, so results compare directly: Creative Fluid Tank and Fluid Tank (Small), Creative Battery Box and Battery Box.
 - **Pipez extraction:** Pipez pipes only push into blocks. To pull from a block, set that pipe connection to **extract** (sneak + right-click the connection with the **Pipe Wrench**, or use the pipe's GUI).
-  - With a Pipez pipe on **both** sides of a tunnel, the far pipe's connection to the machine face (or, inside, to the tunnel wall) must also be set to extract, or nothing moves.
-  - That's a Pipez rule, not a bug: a tunnel keeps the two pipes as separate networks, and a Pipez network only takes input through extracting connections. Details are in `tiny-tunnels-phase-6a-testing.md`.
+  - **Pipe → tunnel → pipe:**
+    - **Energy** works on a pass-through tunnel, with the far pipe's connection to the tunnel set to extract. On extracting sides Pipez exposes a real energy storage that feeds its network.
+    - **Items and fluids need a buffered tunnel** (empty-hand click on the wall: Buffered in or Buffered out), with the far pipe extracting from the tunnel. On extracting sides Pipez exposes only dummy item and fluid handlers, which hold nothing, so a pass-through tunnel between two such pipes has nothing to hand over. See `tiny-tunnels-buffered-tunnels.md`.
+  - A block that holds things (tank, chest, Battery Box) directly against the tunnel works in pass-through with no extra setting.
 
 ## 1. Client launch and basics (B1, B5)
 

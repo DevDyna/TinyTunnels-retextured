@@ -1,111 +1,327 @@
 {
   "variants": {
-    "face=down,inward=down": {
+    "face=down,inward=down,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_down_in"
+    },
+    "face=down,inward=down,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_down_out"
+    },
+    "face=down,inward=down,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_down"
     },
-    "face=down,inward=east": {
+    "face=down,inward=east,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_down_in"
+    },
+    "face=down,inward=east,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_down_out"
+    },
+    "face=down,inward=east,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_down"
     },
-    "face=down,inward=north": {
+    "face=down,inward=north,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_down_in"
+    },
+    "face=down,inward=north,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_down_out"
+    },
+    "face=down,inward=north,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_down"
     },
-    "face=down,inward=south": {
+    "face=down,inward=south,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_down_in"
+    },
+    "face=down,inward=south,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_down_out"
+    },
+    "face=down,inward=south,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_down"
     },
-    "face=down,inward=up": {
+    "face=down,inward=up,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_down_in"
+    },
+    "face=down,inward=up,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_down_out"
+    },
+    "face=down,inward=up,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_down"
     },
-    "face=down,inward=west": {
+    "face=down,inward=west,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_down_in"
+    },
+    "face=down,inward=west,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_down_out"
+    },
+    "face=down,inward=west,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_down"
     },
-    "face=east,inward=down": {
+    "face=east,inward=down,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_east_in"
+    },
+    "face=east,inward=down,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_east_out"
+    },
+    "face=east,inward=down,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_east"
     },
-    "face=east,inward=east": {
+    "face=east,inward=east,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_east_in"
+    },
+    "face=east,inward=east,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_east_out"
+    },
+    "face=east,inward=east,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_east"
     },
-    "face=east,inward=north": {
+    "face=east,inward=north,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_east_in"
+    },
+    "face=east,inward=north,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_east_out"
+    },
+    "face=east,inward=north,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_east"
     },
-    "face=east,inward=south": {
+    "face=east,inward=south,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_east_in"
+    },
+    "face=east,inward=south,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_east_out"
+    },
+    "face=east,inward=south,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_east"
     },
-    "face=east,inward=up": {
+    "face=east,inward=up,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_east_in"
+    },
+    "face=east,inward=up,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_east_out"
+    },
+    "face=east,inward=up,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_east"
     },
-    "face=east,inward=west": {
+    "face=east,inward=west,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_east_in"
+    },
+    "face=east,inward=west,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_east_out"
+    },
+    "face=east,inward=west,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_east"
     },
-    "face=north,inward=down": {
+    "face=north,inward=down,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_north_in"
+    },
+    "face=north,inward=down,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_north_out"
+    },
+    "face=north,inward=down,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_north"
     },
-    "face=north,inward=east": {
+    "face=north,inward=east,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_north_in"
+    },
+    "face=north,inward=east,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_north_out"
+    },
+    "face=north,inward=east,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_north"
     },
-    "face=north,inward=north": {
+    "face=north,inward=north,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_north_in"
+    },
+    "face=north,inward=north,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_north_out"
+    },
+    "face=north,inward=north,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_north"
     },
-    "face=north,inward=south": {
+    "face=north,inward=south,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_north_in"
+    },
+    "face=north,inward=south,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_north_out"
+    },
+    "face=north,inward=south,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_north"
     },
-    "face=north,inward=up": {
+    "face=north,inward=up,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_north_in"
+    },
+    "face=north,inward=up,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_north_out"
+    },
+    "face=north,inward=up,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_north"
     },
-    "face=north,inward=west": {
+    "face=north,inward=west,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_north_in"
+    },
+    "face=north,inward=west,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_north_out"
+    },
+    "face=north,inward=west,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_north"
     },
-    "face=south,inward=down": {
+    "face=south,inward=down,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_south_in"
+    },
+    "face=south,inward=down,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_south_out"
+    },
+    "face=south,inward=down,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_south"
     },
-    "face=south,inward=east": {
+    "face=south,inward=east,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_south_in"
+    },
+    "face=south,inward=east,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_south_out"
+    },
+    "face=south,inward=east,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_south"
     },
-    "face=south,inward=north": {
+    "face=south,inward=north,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_south_in"
+    },
+    "face=south,inward=north,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_south_out"
+    },
+    "face=south,inward=north,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_south"
     },
-    "face=south,inward=south": {
+    "face=south,inward=south,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_south_in"
+    },
+    "face=south,inward=south,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_south_out"
+    },
+    "face=south,inward=south,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_south"
     },
-    "face=south,inward=up": {
+    "face=south,inward=up,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_south_in"
+    },
+    "face=south,inward=up,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_south_out"
+    },
+    "face=south,inward=up,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_south"
     },
-    "face=south,inward=west": {
+    "face=south,inward=west,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_south_in"
+    },
+    "face=south,inward=west,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_south_out"
+    },
+    "face=south,inward=west,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_south"
     },
-    "face=up,inward=down": {
+    "face=up,inward=down,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_up_in"
+    },
+    "face=up,inward=down,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_up_out"
+    },
+    "face=up,inward=down,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_up"
     },
-    "face=up,inward=east": {
+    "face=up,inward=east,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_up_in"
+    },
+    "face=up,inward=east,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_up_out"
+    },
+    "face=up,inward=east,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_up"
     },
-    "face=up,inward=north": {
+    "face=up,inward=north,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_up_in"
+    },
+    "face=up,inward=north,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_up_out"
+    },
+    "face=up,inward=north,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_up"
     },
-    "face=up,inward=south": {
+    "face=up,inward=south,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_up_in"
+    },
+    "face=up,inward=south,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_up_out"
+    },
+    "face=up,inward=south,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_up"
     },
-    "face=up,inward=up": {
+    "face=up,inward=up,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_up_in"
+    },
+    "face=up,inward=up,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_up_out"
+    },
+    "face=up,inward=up,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_up"
     },
-    "face=up,inward=west": {
+    "face=up,inward=west,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_up_in"
+    },
+    "face=up,inward=west,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_up_out"
+    },
+    "face=up,inward=west,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_up"
     },
-    "face=west,inward=down": {
+    "face=west,inward=down,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_west_in"
+    },
+    "face=west,inward=down,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_west_out"
+    },
+    "face=west,inward=down,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_west"
     },
-    "face=west,inward=east": {
+    "face=west,inward=east,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_west_in"
+    },
+    "face=west,inward=east,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_west_out"
+    },
+    "face=west,inward=east,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_west"
     },
-    "face=west,inward=north": {
+    "face=west,inward=north,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_west_in"
+    },
+    "face=west,inward=north,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_west_out"
+    },
+    "face=west,inward=north,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_west"
     },
-    "face=west,inward=south": {
+    "face=west,inward=south,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_west_in"
+    },
+    "face=west,inward=south,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_west_out"
+    },
+    "face=west,inward=south,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_west"
     },
-    "face=west,inward=up": {
+    "face=west,inward=up,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_west_in"
+    },
+    "face=west,inward=up,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_west_out"
+    },
+    "face=west,inward=up,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_west"
     },
-    "face=west,inward=west": {
+    "face=west,inward=west,mode=buffered_in": {
+      "model": "tinytunnels:block/tunnel_wall_west_in"
+    },
+    "face=west,inward=west,mode=buffered_out": {
+      "model": "tinytunnels:block/tunnel_wall_west_out"
+    },
+    "face=west,inward=west,mode=passthrough": {
       "model": "tinytunnels:block/tunnel_wall_west"
     }
   }

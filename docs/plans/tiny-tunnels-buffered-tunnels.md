@@ -1,6 +1,6 @@
 # Tiny Tunnels Buffered Tunnels Plan
 
-**Status (2026-09-28):** planned, blocking the 1.21.1 in-game pass. Nothing is implemented yet.
+**Status (2026-09-28):** BT1 and BT2 are done on `mc1.21.1/dev`: 45 GameTests pass. In game, Pipez fluid **and item** pipe → tunnel → pipe works in both buffered in and buffered out, and bucket in/out and the double sneak + wrench discard work. Next: BT3, the port to `main`. It's blocking the 1.21.1 in-game pass. The order is reversed from the usual branch rule (1.21.1 first, then `main`) to unblock that testing.
 
 ## The problem
 
@@ -37,15 +37,16 @@ The fix here keeps pass-through as the default and makes buffering an explicit, 
 | Draining side | The **far side** (the tunnel wall for In, the machine face for Out) exposes the buffer as a container that **gives only**. A pipe set to extract there pulls from it. |
 | Active push | Every tick the buffer also **pushes forward** into the block on the draining side, if that block accepts items or fluid. A plain chest or tank on the far side then fills without a pipe pulling, which fixes CM's "push-only mods never drained the buffer". Pipes that expose dummies accept nothing from the push, and they pull through their own extraction instead. |
 | Changing mode | **Right-click the tunnel wall with an empty hand**, as with the redstone tunnel. Held items still place blocks against it. The action bar names the new mode. **Switching to Pass-through is refused while the buffer isn't empty** ("Empty the tunnel first"). Switching between In and Out is allowed: the contents simply move the other way. |
-| Removal | With the wrench (sneak): **items in the buffer drop** at the player, like breaking a chest. **Removal is refused while fluid is in the buffer** ("This tunnel still holds 500 mB of Water"), because fluid can't be dropped. Drain it (or switch the direction and let it flow back), then remove. `/setblock` and other commands bypass this, and their contents are lost, as with any block. |
+| Removal | With the wrench (sneak): **items in the buffer are handed back**, like breaking a chest. If it holds **fluid**, the first sneak + wrench only warns ("This tunnel holds 500 mB of Water. Sneak + wrench again to discard it"). A second one on the same tunnel within 5 s discards the fluid and removes the tunnel. `/setblock` and other commands bypass this, and their contents are lost, as with any block. |
+| Buckets | On a buffered tunnel, a bucket (or any fluid container) works on the wall like on a tank. An empty bucket takes 1000 mB out, a full bucket puts 1000 mB in, in any buffered mode. It's the quick way to empty a small leftover by hand. |
 | Where the buffer lives | In the `TunnelBlockEntity`, in the room, saved with the tunnel. The machine face reaches it through the room data, as it reaches the inside block today. |
 | While the room isn't loaded | The machine face answers empty (accepts nothing, gives nothing), as it does for pass-through today. Nothing is lost and no chunk is loaded. |
-| Where the mode is stored | In `Room` (next to `tunnels`) for the server logic, and as a `MODE` block state on the tunnel wall for the look and for client-side answers. The client can't see room data, and Pipez's connection check runs on the client. |
+| Where the mode is stored | **On the tunnel wall's `MODE` block state only**, not in `Room` (changed during BT1). The buffer lives on the tunnel's block entity, so a buffered face can only work while that block entity is loaded, and it answers empty otherwise, whatever the mode. There's no save-format change, the mode moves with the tunnel when the wrench cycles its face, and the client sees it for textures and its own capability answers. `RoomBuilder`'s repair pass now leaves an intact tunnel alone, so the mode and buffer survive every entry. |
 | Look | The same letter and colour per face, plus a mark: **In** gets inward chevrons, **Out** gets the redstone tunnel's corner marks. Jade shows the mode and contents, e.g. "Buffered in: 12 Cobblestone, 500 mB Water". |
 | Loops | A buffered tunnel ends the pass-through chain: it answers with its own buffer and never forwards a lookup. Its active push goes through `ProxyGuard` like any transfer. One-way flow means a buffer can't feed itself directly. |
-| Branch order | **`main` first** (26.x transactions), then port to `mc1.21.1/dev` (the `simulate` flag). The buffer handlers are seam code, in `tunnel/`. |
+| Branch order | **`mc1.21.1/dev` first** (the `simulate` flag), then port to `main` (26.x transactions). This reverses the usual rule, to unblock the 1.21.1 test pass. The buffer handlers are seam code, in `tunnel/`, so `main` gets a by-hand port (`docs/patches/to-main.md`). |
 
-## Phase BT1: `main` (26.1.2)
+## Phase BT1: `mc1.21.1/dev` (1.21.1)
 
 ### Data
 
@@ -57,12 +58,12 @@ The fix here keeps pass-through as the default and makes buffering an explicit, 
 ### Buffer
 
 5. `tunnel/TunnelBuffer` lives on `TunnelBlockEntity` and holds item slots and one fluid tank.
-   - On 26.x it's built on NeoForge's transfer API: `ItemStacksResourceHandler` / `FluidStacksResourceHandler`, which take part in transactions.
-   - It's saved with `ValueOutput` / `ValueInput`, and `setChanged()` is called on every change.
+   - On 1.21.1 it's an `ItemStackHandler` plus a `FluidTank`. A `simulate=true` call must never change anything, since there are no transactions.
+   - It's saved through `CompoundTag` (`serializeNBT`, `writeToNBT`), and `setChanged()` is called on every change.
 6. Two views of the buffer, one for each end: `fillOnly` (insert only, extract returns 0) and `drainOnly` (extract only, insert returns 0). Both go through `ProxyGuard` like the other guarded handlers.
 7. **Active push:** `TunnelBlockEntity` gets a server ticker.
    - For a buffered tunnel, each tick it moves as much as the draining-side block accepts: the block against the wall inside for In, the block against the machine face outside for Out.
-   - The move is transactional on 26.x (simulate/execute on 1.21.1), with the existing `EndpointCaches`, so there's no lookup cost per tick.
+   - The move is simulate then execute (`ItemHandlerHelper.insertItem`, `FluidUtil.tryFluidTransfer`), with the existing `EndpointCaches`, so there's no lookup cost per tick.
    - It skips the tick when the buffer is empty.
 
 ### Capabilities
@@ -74,7 +75,7 @@ The fix here keeps pass-through as the default and makes buffering an explicit, 
 
 ### Interaction
 
-10. `TunnelWallBlock.useItemOn` / `useWithoutItem`: an empty hand cycles the mode, with the pass-through-while-not-empty refusal. This reuses `RedstoneTunnels`' click pattern (26.x: `TRY_WITH_EMPTY_HAND`).
+10. `TunnelWallBlock.useItemOn` / `useWithoutItem`: an empty hand cycles the mode, with the pass-through-while-not-empty refusal. This is the redstone tunnel's click pattern: `PASS_TO_DEFAULT_BLOCK_INTERACTION` for an empty hand.
 11. `TunnelWrenching.remove`: drop the buffered items at the player, and refuse while fluid is present, with the message.
 12. Lang:
     - modes: "Pass-through", "Buffered in", "Buffered out"
@@ -89,7 +90,7 @@ The fix here keeps pass-through as the default and makes buffering an explicit, 
     - `bufferFluidCapacity`: 1000 to 64000 mB, default 8000
     - Changing either doesn't delete contents. A smaller buffer keeps its existing contents until they drain.
 
-## Phase BT2: tests on `main`
+## Phase BT2: tests on `mc1.21.1/dev`
 
 GameTests use vanilla blocks only. A hopper that extracts from a container above it stands in for a "pipe that pulls". The GameTest server builds rooms in the overworld, so cross-dimension access is covered in game.
 
@@ -103,18 +104,18 @@ GameTests use vanilla blocks only. A hopper that extracts from a container above
 | BT-6 | Mode cycle: pass-through → in → out → pass-through, with an empty hand. Switching to pass-through while not empty is refused, and the mode stays. |
 | BT-7 | Removal with items: they drop and the total is conserved. Removal with fluid is refused and the tunnel stays. |
 | BT-8 | Energy on a buffered tunnel still passes straight through (a stand-in energy handler on both ends). |
-| BT-9 | Transaction (26.x): inserting into the machine face inside a transaction that isn't committed leaves the buffer unchanged. |
+| BT-9 | Simulate: a `simulate=true` insert into the machine face, and a `simulate=true` extract from the wall, leave the buffer unchanged. |
 | BT-10 | Save format: a room saved without `tunnel_modes` loads with every tunnel pass-through. |
 
-**Manual, in game on `main`:** creative tank → Pipez fluid pipe (extracting at the tank) → machine face (buffered in). Inside, the wall → a Pipez fluid pipe **extracting at the wall** → the small tank. Water flows. Repeat with item pipes, then with Out.
+**Manual, in game on `mc1.21.1/dev`:** creative tank → Pipez fluid pipe (extracting at the tank) → machine face (buffered in). Inside, the wall → a Pipez fluid pipe **extracting at the wall** → the small tank. Water flows. Repeat with item pipes, then with Out.
 
-## Phase BT3: port to `mc1.21.1/dev`
+## Phase BT3: port to `main` (26.x)
 
-- The buffer is built on `ItemStackHandler` / `FluidTank`. The two views pass `simulate` / `FluidAction` through unchanged. The active push uses `ItemHandlerHelper.insertItem` / `FluidUtil.tryFluidTransfer`.
-- Save and load through `CompoundTag` (`ItemStackHandler.serializeNBT`, `FluidTank.writeToNBT`).
-- `useItemOn` returns `ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION` for an empty hand. Removal happens in `onRemove`.
-- Port BT-1 to BT-8 and BT-10. BT-9 becomes "a `simulate=true` insert leaves the buffer unchanged".
-- Add to `docs/patches/` as a by-hand ("redo") entry.
+- The buffer is built on NeoForge's transfer API: `ItemStacksResourceHandler` / `FluidStacksResourceHandler`, which take part in transactions. The two views pass the caller's transaction through. The active push opens its own transaction and commits it.
+- Save and load through `ValueOutput` / `ValueInput`.
+- `useItemOn` returns `InteractionResult.TRY_WITH_EMPTY_HAND` for an empty hand. Removal side effects go in `affectNeighborsAfterRemoval` / `preRemoveSideEffects`.
+- Port the GameTests. BT-9 becomes "inserting inside a transaction that isn't committed leaves the buffer unchanged".
+- Tracked as a by-hand ("redo") entry in `docs/patches/to-main.md`.
 
 ## Docs to update when done
 

@@ -6,13 +6,19 @@ import java.util.Locale;
 
 
 import dev.thefern2.tinytunnels.machine.MachineBlock;
+import dev.thefern2.tinytunnels.room.TunnelMode;
 import dev.thefern2.tinytunnels.tunnel.RedstoneTunnelWallBlock;
 import dev.thefern2.tinytunnels.tunnel.TunnelWallBlock;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.fluids.FluidStack;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
 import snownee.jade.api.ITooltip;
@@ -54,7 +60,22 @@ enum Tooltips implements IBlockComponentProvider {
     TUNNEL(TinyTunnelsJadePlugin.TUNNEL) {
         @Override
         public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
-            tooltip.add(Component.translatable("jade.tinytunnels.links_to", faceName(accessor.getBlockState().getValue(TunnelWallBlock.FACE))));
+            BlockState state = accessor.getBlockState();
+            tooltip.add(Component.translatable("jade.tinytunnels.links_to", faceName(state.getValue(TunnelWallBlock.FACE))));
+            TunnelMode mode = state.getValue(TunnelWallBlock.MODE);
+            if (!mode.isBuffered()) return;
+            // "Buffered in: 12 Cobblestone, 500 mB Water"
+            CompoundTag data = accessor.getServerData();
+            HolderLookup.Provider registries = accessor.getLevel().registryAccess();
+            List<Component> contents = new ArrayList<>();
+            for (Tag tag : data.getList("items", Tag.TAG_COMPOUND)) {
+                ItemStack stack = ItemStack.parseOptional(registries, (CompoundTag) tag);
+                if (!stack.isEmpty()) contents.add(Component.literal(stack.getCount() + " ").append(stack.getHoverName()));
+            }
+            FluidStack fluid = data.contains("fluid") ? FluidStack.parseOptional(registries, data.getCompound("fluid")) : FluidStack.EMPTY;
+            if (!fluid.isEmpty()) contents.add(Component.literal(fluid.getAmount() + " mB ").append(fluid.getHoverName()));
+            Component shown = contents.isEmpty() ? Component.translatable("jade.tinytunnels.buffer.empty") : ComponentUtils.formatList(contents, Component.literal(", "));
+            tooltip.add(Component.translatable("jade.tinytunnels.buffer", mode.displayName(), shown));
         }
     },
     /** One line: "Links to the north side: in 15". */

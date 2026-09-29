@@ -1,6 +1,5 @@
 package dev.thefern2.tinytunnels.datagen;
 
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,6 +9,7 @@ import dev.thefern2.tinytunnels.machine.PortKind;
 import dev.thefern2.tinytunnels.registry.ModBlocks;
 import dev.thefern2.tinytunnels.registry.ModItems;
 import dev.thefern2.tinytunnels.room.RedstoneMode;
+import dev.thefern2.tinytunnels.room.TunnelMode;
 import dev.thefern2.tinytunnels.tunnel.RedstoneTunnelWallBlock;
 import dev.thefern2.tinytunnels.tunnel.TunnelWallBlock;
 import net.minecraft.core.Direction;
@@ -45,15 +45,19 @@ public class ModModelProvider extends BlockStateProvider {
         });
         simpleBlock(ModBlocks.ROOM_WALL.get());
 
-        // One texture per mapped face (a letter on the port), so the mapping is visible. The inward
-        // property doesn't change the look.
-        Map<Direction, ModelFile> tunnelModels = new EnumMap<>(Direction.class);
+        // One texture per mapped face (a letter on the port), so the mapping is visible, with yellow
+        // marks for the buffered modes: notches for in, corners for out. The inward property doesn't
+        // change the look.
+        Map<String, ModelFile> tunnelModels = new HashMap<>();
         for (Direction face : Direction.values()) {
-            String name = "tunnel_wall_" + face.getSerializedName();
-            tunnelModels.put(face, models().cubeAll(name, modLoc("block/" + name)));
+            for (TunnelMode mode : TunnelMode.values()) {
+                String name = "tunnel_wall" + tunnelSuffix(face, mode);
+                tunnelModels.put(name, models().cubeAll(name, modLoc("block/" + name)));
+            }
         }
-        getVariantBuilder(ModBlocks.TUNNEL_WALL.get()).forAllStates(state ->
-                ConfiguredModel.builder().modelFile(tunnelModels.get(state.getValue(TunnelWallBlock.FACE))).build());
+        getVariantBuilder(ModBlocks.TUNNEL_WALL.get()).forAllStates(state -> ConfiguredModel.builder()
+                .modelFile(tunnelModels.get("tunnel_wall" + tunnelSuffix(state.getValue(TunnelWallBlock.FACE), state.getValue(TunnelWallBlock.MODE))))
+                .build());
 
         // Redstone tunnels: a red port with the face letter, per direction (corner marks on "out"),
         // brighter while carrying a signal.
@@ -79,6 +83,15 @@ public class ModModelProvider extends BlockStateProvider {
 
     private ModelFile port(String path) {
         return models().getExistingFile(modLoc(path));
+    }
+
+    private static String tunnelSuffix(Direction face, TunnelMode mode) {
+        String marks = switch (mode) {
+            case PASSTHROUGH -> "";
+            case BUFFERED_IN -> "_in";
+            case BUFFERED_OUT -> "_out";
+        };
+        return "_" + face.getSerializedName() + marks;
     }
 
     private static String redstoneSuffix(Direction face, RedstoneMode mode, boolean powered) {

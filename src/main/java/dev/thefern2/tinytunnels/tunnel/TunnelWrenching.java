@@ -1,5 +1,9 @@
 package dev.thefern2.tinytunnels.tunnel;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 import dev.thefern2.tinytunnels.TinyTunnels;
 import dev.thefern2.tinytunnels.registry.ModBlocks;
 import dev.thefern2.tinytunnels.registry.ModItems;
@@ -20,7 +24,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 
 /**
  * Editing tunnels with a wrench: the Tunnel Wrench, or any item tagged {@code c:tools/wrench}.
@@ -30,6 +36,14 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
  */
 @EventBusSubscriber(modid = TinyTunnels.MODID)
 public final class TunnelWrenching {
+    /** How long a "discard the fluid?" warning stays armed, in ticks. */
+    private static final int CONFIRM_TICKS = 100;
+
+    private record PendingDiscard(BlockPos pos, long expires) {}
+
+    /** Players who were just warned that removing a tunnel throws its fluid away. */
+    private static final Map<UUID, PendingDiscard> PENDING_DISCARD = new HashMap<>();
+
     @SubscribeEvent
     static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
         if (!event.getItemStack().is(Tags.Items.TOOLS_WRENCH)) return;
@@ -74,6 +88,26 @@ public final class TunnelWrenching {
         RoomData data = RoomData.get(rooms.getServer());
         Room room = mappedRoom(data, pos, state);
         if (room == null) return;
+        if (rooms.getBlockEntity(pos) instanceof TunnelBlockEntity tunnel) {
+            // Fluid can't be dropped: the first click warns, a second one on the same tunnel soon after discards it.
+            FluidStack fluid = tunnel.fluidContents();
+            if (!fluid.isEmpty()) {
+                PendingDiscard pending = PENDING_DISCARD.get(player.getUUID());
+                long now = rooms.getGameTime();
+                if (pending == null || !pending.pos().equals(pos) || now > pending.expires()) {
+                    PENDING_DISCARD.put(player.getUUID(), new PendingDiscard(pos.immutable(), now + CONFIRM_TICKS));
+                    player.displayClientMessage(Component.translatable("message.tinytunnels.tunnel.holds_fluid",
+                            fluid.getAmount(), fluid.getHoverName()), true);
+                    return;
+                }
+                PENDING_DISCARD.remove(player.getUUID());
+                tunnel.discardFluid();
+            }
+            // Items are handed back, like breaking a chest.
+            for (ItemStack stack : tunnel.takeItems()) {
+                if (!player.getInventory().add(stack)) player.drop(stack, false);
+            }
+        }
         ShellProtection.edit(() -> rooms.setBlock(pos, ModBlocks.ROOM_WALL.get().defaultBlockState(), Block.UPDATE_ALL));
         data.removeTunnel(room.id(), state.getValue(TunnelWallBlock.FACE));
         // Pass the room as it was, so the removed tunnel's position is notified too.
@@ -134,6 +168,11 @@ public final class TunnelWrenching {
     private static Room mappedRoom(RoomData data, BlockPos pos, BlockState state) {
         Room room = data.byChunk(new ChunkPos(pos.getX() >> 4, pos.getZ() >> 4)).orElse(null);
         return room != null && pos.equals(room.tunnels().get(state.getValue(TunnelWallBlock.FACE))) ? room : null;
+    }
+
+    @SubscribeEvent
+    static void onServerStopped(ServerStoppedEvent event) {
+        PENDING_DISCARD.clear();
     }
 
     private TunnelWrenching() {}

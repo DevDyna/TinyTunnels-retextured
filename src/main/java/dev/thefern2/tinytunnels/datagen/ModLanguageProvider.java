@@ -36,6 +36,14 @@ public class ModLanguageProvider extends LanguageProvider {
         add("message.tinytunnels.tunnel.no_free_face", "Every other side already has a tunnel");
         add("message.tinytunnels.tunnel.all_faces_used", "All six sides already have a tunnel");
         add("message.tinytunnels.tunnel.edge", "Tunnels can't go on an edge or corner");
+        add("tinytunnels.tunnel_mode.passthrough", "Pass-through");
+        add("tinytunnels.tunnel_mode.buffered_in", "Buffered in");
+        add("tinytunnels.tunnel_mode.buffered_out", "Buffered out");
+        add("message.tinytunnels.tunnel.mode", "Tunnel set to %s");
+        add("message.tinytunnels.tunnel.not_empty", "Empty the tunnel first");
+        add("message.tinytunnels.tunnel.holds_fluid", "This tunnel holds %s mB of %s. Sneak + wrench again to discard it");
+        add("jade.tinytunnels.buffer", "%s: %s");
+        add("jade.tinytunnels.buffer.empty", "empty");
         add("message.tinytunnels.redstone_tunnel.in", "Redstone in from the machine's %s side");
         add("message.tinytunnels.redstone_tunnel.out", "Redstone out to the machine's %s side");
         add("tinytunnels.face.down", "bottom");

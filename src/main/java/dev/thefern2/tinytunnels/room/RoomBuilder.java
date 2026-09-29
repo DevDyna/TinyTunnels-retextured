@@ -23,9 +23,12 @@ public final class RoomBuilder {
             room.tunnels().forEach((face, pos) -> {
                 Direction inward = room.geometry().inwardNormal(pos);
                 if (inward == null) return;
-                BlockState tunnel = ModBlocks.TUNNEL_WALL.get().defaultBlockState()
-                        .setValue(TunnelWallBlock.FACE, face).setValue(TunnelWallBlock.INWARD, inward);
-                if (!rooms.getBlockState(pos).equals(tunnel)) rooms.setBlock(pos, tunnel, Block.UPDATE_ALL);
+                BlockState current = rooms.getBlockState(pos);
+                // Leave an intact tunnel alone: its mode and buffer live on it.
+                if (current.getBlock() instanceof TunnelWallBlock && current.getValue(TunnelWallBlock.FACE) == face
+                        && current.getValue(TunnelWallBlock.INWARD) == inward) return;
+                rooms.setBlock(pos, ModBlocks.TUNNEL_WALL.get().defaultBlockState()
+                        .setValue(TunnelWallBlock.FACE, face).setValue(TunnelWallBlock.INWARD, inward), Block.UPDATE_ALL);
             });
             room.redstone().forEach((face, redstone) -> {
                 Direction inward = room.geometry().inwardNormal(redstone.pos());

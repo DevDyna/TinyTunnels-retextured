@@ -57,6 +57,18 @@ public final class TinyTunnelsGameTests {
         TESTS.put("entry_blocked_centre", new Test(EntryGameTests::blockedCentreFindsClearSpot, 100));
         TESTS.put("entry_exit_outside_room", new Test(EntryGameTests::exitOutsideRoomIgnored, 100));
         TESTS.put("bed_refused_in_room", new Test(EntryGameTests::bedRefusedInRoom, 100));
+        TESTS.put("buffered_items_in", new Test(BufferedTunnelGameTests::itemsIn, 200));
+        TESTS.put("buffered_wall_pull", new Test(BufferedTunnelGameTests::wallCanBePulledFrom, 100));
+        TESTS.put("buffered_fluid_in", new Test(BufferedTunnelGameTests::fluidIn, 100));
+        TESTS.put("buffered_active_push", new Test(BufferedTunnelGameTests::activePush, 100));
+        TESTS.put("buffered_full", new Test(BufferedTunnelGameTests::full, 100));
+        TESTS.put("buffered_one_way", new Test(BufferedTunnelGameTests::oneWay, 100));
+        TESTS.put("buffered_mode_cycle", new Test(BufferedTunnelGameTests::modeCycle, 100));
+        TESTS.put("buffered_removal", new Test(BufferedTunnelGameTests::removal, 100));
+        TESTS.put("buffered_energy_passthrough", new Test(BufferedTunnelGameTests::energyPassesThrough, 100));
+        TESTS.put("buffered_simulate", new Test(BufferedTunnelGameTests::simulateChangesNothing, 100));
+        TESTS.put("buffered_repair", new Test(BufferedTunnelGameTests::repairKeepsBuffer, 100));
+        TESTS.put("buffered_bucket", new Test(BufferedTunnelGameTests::bucket, 100));
     }
 
     public static void register(IEventBus modEventBus) {

@@ -19,7 +19,7 @@ One line per item; details are in `docs/todo/`. Items outside the phase plan (`d
 
 ## Backlog (1.21.1 backport, to prioritize)
 
-- **Blocking:** buffered tunnel mode, so pipe → tunnel → pipe works for items and fluids (`plans/tiny-tunnels-buffered-tunnels.md`). `main` first, then port.
+- Buffered tunnels: port to `main` (BT3, `plans/tiny-tunnels-buffered-tunnels.md`), queued in `docs/patches/to-main.md`.
 - In-game pass on 1.21.1 (`plans/tiny-tunnels-1-21-1-testing.md`), especially 6a-inside (Create factories) and the mod matrix.
 - CI: add a timeout to the GameTest step in `.github/workflows/build.yml`, so a rare 1.21.1 shutdown hang fails fast.
 - Flaky GameTest `redstone_item_and_ports`: fails about 1 in 10 runs with a null `actual`, likely a timing race.
@@ -40,6 +40,7 @@ From `docs/plans/tiny-tunnels-implementation.md`:
 
 ## Done
 
+- 2026-09-28 (`mc1.21.1/dev`): buffered tunnel mode (empty-hand click: pass-through, buffered in, buffered out), so pipe → tunnel → pipe works for items and fluids. Buckets fill and empty the buffer; sneak + wrench twice discards leftover fluid ([plan](plans/tiny-tunnels-buffered-tunnels.md)). Tested in game with Pipez fluid and item pipes, in and out.
 - 2026-09-26: Entering a room starts where you last left it, falling back to a clear spot, so you don't get stuck in blocks ([room-entry-point](todo/room-entry-point.md)). GameTests pass; manual check pending.
 - 2026-09-26: Room and tunnel walls unbreakable for everyone ([unbreakable-walls](todo/unbreakable-walls.md)).
 - 2026-09-26: Letters on machine faces that have tunnels ([machine-face-labels](todo/machine-face-labels.md)). Tested.

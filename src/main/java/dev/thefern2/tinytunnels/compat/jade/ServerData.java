@@ -5,11 +5,15 @@ import dev.thefern2.tinytunnels.room.RedstoneTunnel;
 import dev.thefern2.tinytunnels.room.Room;
 import dev.thefern2.tinytunnels.room.RoomData;
 import dev.thefern2.tinytunnels.tunnel.RedstoneTunnelWallBlock;
+import dev.thefern2.tinytunnels.tunnel.TunnelBlockEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
+import net.neoforged.neoforge.fluids.FluidStack;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IServerDataProvider;
 
@@ -27,6 +31,19 @@ enum ServerData implements IServerDataProvider<BlockAccessor> {
                 data.putString("redstone_" + face.getSerializedName(), tunnel.mode().getSerializedName());
                 data.putInt("power_" + face.getSerializedName(), tunnel.power());
             }));
+        }
+    },
+    /** A buffered tunnel's contents, under {@code items} (list of stacks) and {@code fluid}. */
+    TUNNEL(TinyTunnelsJadePlugin.TUNNEL) {
+        @Override
+        public void appendServerData(CompoundTag data, BlockAccessor accessor) {
+            if (!(accessor.getBlockEntity() instanceof TunnelBlockEntity tunnel) || !tunnel.mode().isBuffered()) return;
+            HolderLookup.Provider registries = accessor.getLevel().registryAccess();
+            ListTag items = new ListTag();
+            tunnel.buffer().contents().forEach(stack -> items.add(stack.save(registries)));
+            data.put("items", items);
+            FluidStack fluid = tunnel.buffer().fluidContents();
+            if (!fluid.isEmpty()) data.put("fluid", fluid.save(registries));
         }
     },
     REDSTONE_TUNNEL(TinyTunnelsJadePlugin.REDSTONE_TUNNEL) {

@@ -14,7 +14,8 @@ import net.minecraft.server.level.ChunkMap;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 /**
  * TODO(debug): remove once the 1.21.1 GameTest shutdown hang is understood.
@@ -28,9 +29,22 @@ public final class ShutdownWatchdog {
     private static final long DELAY_MS = 10_000;
     private static final int MAX_LOGGED = 40;
 
+    private static volatile boolean started;
+
     @SubscribeEvent
-    static void onServerStopping(ServerStoppingEvent event) {
+    static void onServerStarting(ServerStartingEvent event) {
+        started = false;
+    }
+
+    /**
+     * Starts watching on the tick {@code halt()} was called (the GameTest server halts from its own tick).
+     * {@code ServerStoppingEvent} isn't used: on 1.21.1 it doesn't fire before the stop loop that hangs.
+     */
+    @SubscribeEvent
+    static void onServerTick(ServerTickEvent.Post event) {
         MinecraftServer server = event.getServer();
+        if (server.isRunning() || started) return;
+        started = true;
         Set<Long> roomChunks = RoomData.get(server).rooms().stream()
                 .map(room -> room.geometry().chunk().toLong())
                 .collect(Collectors.toSet());

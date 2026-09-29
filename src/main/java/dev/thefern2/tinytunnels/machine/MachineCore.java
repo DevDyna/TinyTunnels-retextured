@@ -15,6 +15,7 @@ import dev.thefern2.tinytunnels.room.RoomDimension;
 import dev.thefern2.tinytunnels.tunnel.CapabilityUpdates;
 import dev.thefern2.tinytunnels.tunnel.EndpointCaches;
 import dev.thefern2.tinytunnels.tunnel.RedstoneTunnels;
+import dev.thefern2.tinytunnels.tunnel.TunnelBlockEntity;
 import dev.thefern2.tinytunnels.tunnel.TransferKind;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -94,6 +95,13 @@ public final class MachineCore {
         BlockPos tunnel = room.tunnels().get(face);
         if (tunnel == null) return null;
         ServerLevel rooms = RoomDimension.getRoomLevel(server.getServer());
+        // A buffered tunnel answers with its buffer; that needs the tunnel loaded, else answer empty.
+        if (rooms != null && rooms.isLoaded(tunnel) && rooms.getBlockEntity(tunnel) instanceof TunnelBlockEntity tunnelEntity) {
+            T bufferEnd = tunnelEntity.bufferEnd(kind, true);
+            if (bufferEnd != null) return bufferEnd;
+        } else if (rooms == null || !rooms.isLoaded(tunnel)) {
+            return kind.empty();
+        }
         Direction inward = room.geometry().inwardNormal(tunnel);
         if (rooms == null || inward == null) return kind.empty();
         return inside.get(new InsideKey(kind, face), kind, rooms, tunnel.relative(inward), inward.getOpposite());

@@ -63,6 +63,9 @@ public final class TunnelCapabilities {
         if (!(be instanceof TunnelBlockEntity tunnel)) return null;
         try {
             if (side != tunnel.inward()) return null;
+            // A buffered tunnel answers with its own buffer and never forwards the lookup.
+            T bufferEnd = tunnel.bufferEnd(kind, false);
+            if (bufferEnd != null) return bufferEnd;
             return ProxyGuard.lookup(kind, () -> tunnel.outsideCapability(kind));
         } catch (RuntimeException e) {
             warnOnce(e);
