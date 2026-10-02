@@ -1,0 +1,9 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "tinytunnels:block/maximum_machine"
+      }
+    }
+  ]
+}

@@ -7,3 +7,9 @@ pluginManagement {
 plugins {
     id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
 }
+
+rootProject.name = 'TinyTunnels'
+
+// core: the mod players install, with the public API inside. addons/create: the Create addon (filled in A6).
+include 'core'
+include 'addons:create'

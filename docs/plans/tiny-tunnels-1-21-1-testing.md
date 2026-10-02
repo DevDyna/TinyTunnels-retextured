@@ -112,7 +112,11 @@ Manual checks for the 1.21.1 backport (`tiny-tunnels-1-21-1-backport.md`, B1–B
     ```
     - [ ] The machine survives (it's blast-proof), and its room is untouched.
 
-## 3. Tunnels with vanilla blocks (B3, B4)
+## 3. Tunnels (B3, B4, buffered tunnels)
+
+### 3a. Pass-through (the default)
+
+A pass-through tunnel hands everything straight to the block on the other side. It needs a block that **holds** things (chest, tank, drawer, Battery Box, hopper) directly against one end. Two Pipez pipes facing each other through a pass-through tunnel move **nothing** for items and fluids (see 3b, step 10). Energy pipes work.
 
 1. Enter a room. Place a Tunnel on a side wall, one block above the floor, and put a **chest** in front of it inside.
    - [ ] The wall shows a coloured port with a letter. The machine outside shows the same port on that side.
@@ -120,7 +124,7 @@ Manual checks for the 1.21.1 backport (`tiny-tunnels-1-21-1-backport.md`, B1–B
    - [ ] All 64 end up in the chest inside. The hopper is empty.
 3. Inside, point a **hopper** into the tunnel wall (hopper facing the wall). Outside, put a chest against the matching machine face.
    - [ ] Items arrive in the chest outside, with the count unchanged.
-4. **Fluids through a tunnel, with Pipez.** Same setup as `tiny-tunnels-phase-6a-testing.md`, section 4.
+4. **Fluids with Pipez into a tank (pass-through).** Same setup as `tiny-tunnels-phase-6a-testing.md`, section 4.
    - **Why not a bucket:** a water bucket can't be emptied into a machine face or tunnel wall. Vanilla buckets place water in the world and never use a block's fluid capability, so that's expected.
    - **Why not a cauldron:** a cauldron only takes or gives a whole 1000 mB at once, so a pipe never fills it. The `fluid_into_cauldron` GameTest covers the cauldron.
    - **Outside:** an Energized Power **Creative Fluid Tank** (the magenta "C" block), connected by a Pipez **Fluid Pipe** to a machine face with a tunnel.
@@ -138,6 +142,44 @@ Manual checks for the 1.21.1 backport (`tiny-tunnels-1-21-1-backport.md`, B1–B
 7. Try to break a room wall in survival, and try `/setblock ~ ~ ~ minecraft:stone` on a wall block.
    - [ ] Survival mining does nothing.
    - [ ] The `/setblock`'d block turns back into a room wall within a second.
+
+### 3b. Buffered tunnels
+
+**Done 2026-09-28.**
+
+Buffered tunnels hold a little (1 item stack and 8000 mB by default) so that a pipe that only pushes and a pipe that only pulls can meet through a tunnel. They're one-way. Plan: `tiny-tunnels-buffered-tunnels.md`. Use a tunnel with a Pipez pipe on each side; the Pipez extraction rules are in the setup section.
+
+8. **Mode cycle.** Inside, right-click a tunnel wall with an **empty hand** four times.
+   - [x] 1st: action bar "Tunnel set to Buffered in", a click sound, and **yellow notches** at the middle of each edge of the port.
+   - [x] 2nd: "Tunnel set to Buffered out", with **yellow corner marks**.
+   - [x] 3rd: "Tunnel set to Pass-through", with the marks gone.
+   - [x] Right-clicking it while **holding a block** places the block against the wall and doesn't change the mode.
+9. **Fluids, pipe → tunnel → pipe, Buffered in.**
+   - **Outside:** a Creative Fluid Tank set to water (through its GUI), then a Pipez Fluid Pipe **extracting at the tank**, then the machine face. The pipe's arm at the machine must **not** extract.
+   - **Inside:** the tunnel wall (**Buffered in**), then a Pipez Fluid Pipe **extracting at the wall**, then a Fluid Tank (Small).
+   - [x] Water fills the small tank.
+   - [x] Jade on the wall shows "Buffered in: … mB Water" while it flows.
+10. **For comparison: the same setup in Pass-through.** Click the wall until it says Pass-through. (If the buffer isn't empty, it refuses; see step 13.)
+    - [x] Nothing flows. That's expected: the pipes have nothing to hand over without a buffer.
+11. **Fluids, Buffered out.** Swap the ends: a full tank and a pipe **extracting at the wall** inside, and a pipe **extracting at the machine face** outside into an empty tank. Set the wall to **Buffered out**.
+    - [x] Water moves from inside to outside.
+12. **Items, both directions.** Repeat 9 and 11 with Pipez **Item Pipes**: a chest of cobblestone at the source end, and a chest or Storage Drawer at the far end.
+    - [x] Items arrive in both directions, with the total unchanged.
+13. **Back to pass-through while not empty.** With something in the buffer (Jade shows it), click the wall until the next mode would be Pass-through.
+    - [x] It refuses with "Empty the tunnel first" and stays buffered.
+14. **Active push, no pipe inside.** Buffered in, with a **chest directly against the wall** inside and a hopper outside pushing into the machine face.
+    - [x] Items reach the chest with nothing pulling on the inside.
+15. **Buckets.** On a buffered tunnel holding at least 1000 mB of water, right-click the wall with an **empty bucket**, then with the **full bucket**.
+    - [x] The empty bucket comes back full, and the buffer drops by 1000 mB (Jade).
+    - [x] The full bucket empties into the buffer, which goes back up by 1000 mB.
+16. **Removal.**
+    - [x] With **items** buffered: sneak + wrench removes the tunnel and hands back the items plus the Tunnel item.
+    - [x] With **fluid** buffered: the first sneak + wrench says "This tunnel holds … mB of …. Sneak + wrench again to discard it", and the tunnel stays.
+    - [x] A second sneak + wrench **within 5 seconds** removes it. The fluid is gone, and any items and the Tunnel item are handed back.
+    - [x] Waiting **more than 5 seconds** before the second click only warns again.
+17. **Kept across edits and entries.**
+    - [x] Wrench-cycle a buffered tunnel to another face: it keeps its mode and contents.
+    - [x] Leave the room with the Shrinker and enter again: the mode and contents are still there. The repair pass on entry must not reset them.
 
 ## 4. Redstone tunnels (B3)
 
@@ -169,6 +211,8 @@ For each test, check three things. Note the mod and the step if any of them fail
 Leave each setup running for at least 30 seconds, because the way `simulate` behaves under repeated push and pull is what this pass is about.
 
 ### 6a. Create 6.0.8 (items and fluids; rotation is B8)
+
+> **Paused 2026-09-29 until B8 (the kinetic tunnel) is built.** Create inside a room is mostly tested. Sections 6a, 6a-inside and the Create steps in section 7 get finished in one pass with the kinetic in-game test (`tiny-tunnels-kinetic-tunnel.md`, phase K2). Sections 6b–6e don't depend on it.
 
 Get a Creative Motor from JEI to power anything that needs rotation.
 

@@ -326,7 +326,7 @@ Follow the seam rules above. When the MVP is tagged, note which files changed si
 
 ### B8: Kinetic tunnel (Create rotation)
 
-This comes after B7, once the 1.21.1 branch is stable. The full design is in `docs/plans/tiny-tunnels-kinetic-tunnel.md`:
+Planned to come after B7, but **started early on 2026-09-29**: the API check against Create 6.0.8 is done and the build order is K0–K2. The Create sections of the in-game checklist are paused until K2. The full design is in `docs/plans/tiny-tunnels-kinetic-tunnel.md`:
 
 - both ends swap speed, spare capacity and demand through a transient link
 - Create is optional, through `compat/create`
