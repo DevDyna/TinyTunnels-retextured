@@ -8,63 +8,104 @@ import java.util.UUID;
 
 import org.jspecify.annotations.Nullable;
 
-import com.mojang.datafixers.util.Either;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.Dynamic;
+import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import dev.thefern2.tinytunnels.TinyTunnels;
 import dev.thefern2.tinytunnels.api.RoomView;
 import dev.thefern2.tinytunnels.api.Tunnel;
 import dev.thefern2.tinytunnels.api.TunnelKind;
-import dev.thefern2.tinytunnels.registry.ModTunnelKinds;
-import dev.thefern2.tinytunnels.tunnel.RedstoneSignal;
+import dev.thefern2.tinytunnels.api.TunnelKinds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.UUIDUtil;
-import net.minecraft.util.ExtraCodecs;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * One room. Immutable: {@link RoomData} swaps in a new instance on every change.
  *
  * @param host  where the machine bound to this room currently stands; empty while the machine is an item
- * @param faces outer face of the machine -> the tunnel on it, of any kind. Saved as {@code tunnels}.
+ * @param faces   outer face of the machine -> the tunnel on it, of any registered kind. Saved as {@code tunnels}.
+ * @param unknown outer face -> a saved tunnel of a kind that isn't registered, kept as it was ({@link UnknownTunnel}).
+ *                Saved in {@code tunnels} too; a face is in at most one of the two maps.
  * @param entry where the last player to leave with the Shrinker stood; the next entry starts there if it's still clear
  */
-public record Room(UUID id, int gridIndex, int size, Optional<GlobalPos> host, Map<Direction, RoomTunnel<?>> faces, Optional<EntryPoint> entry) {
-    /**
-     * Writes {@code tunnels} as one map of face -> {@link RoomTunnel}. Reads the dev-world format once too: an old
-     * {@code tunnels} entry is a bare wall position (a pass-through transfer tunnel; buffered modes lived on the wall
-     * then, so they come back as pass-through), and the old {@code redstone} and {@code kinetic} maps are folded in.
-     */
+public record Room(UUID id, int gridIndex, int size, Optional<GlobalPos> host, Map<Direction, RoomTunnel<?>> faces,
+                   Map<Direction, UnknownTunnel> unknown, Optional<EntryPoint> entry) {
+    /** Writes {@code tunnels} as one map of face -> {@link RoomTunnel}, with unknown kinds' entries written back as they were loaded. */
     public static final Codec<Room> CODEC = RecordCodecBuilder.create(i -> i.group(
             UUIDUtil.CODEC.fieldOf("id").forGetter(Room::id),
             Codec.INT.fieldOf("grid_index").forGetter(Room::gridIndex),
             Codec.INT.fieldOf("size").forGetter(Room::size),
             GlobalPos.CODEC.optionalFieldOf("host").forGetter(Room::host),
-            Codec.unboundedMap(Direction.CODEC, Codec.either(RoomTunnel.CODEC, BlockPos.CODEC)).optionalFieldOf("tunnels", Map.of())
+            Codec.unboundedMap(Direction.CODEC, Saved.CODEC).optionalFieldOf("tunnels", Map.of())
                     .forGetter(Room::savedTunnels),
-            Codec.unboundedMap(Direction.CODEC, OldRedstone.CODEC).optionalFieldOf("redstone", Map.of()).forGetter(room -> Map.of()),
-            Codec.unboundedMap(Direction.CODEC, OldKinetic.CODEC).optionalFieldOf("kinetic", Map.of()).forGetter(room -> Map.of()),
             EntryPoint.CODEC.optionalFieldOf("entry").forGetter(Room::entry)
     ).apply(i, Room::fromSaved));
 
     public Room {
         faces = faces.isEmpty() ? Map.of() : Map.copyOf(new EnumMap<>(faces));
+        unknown = unknown.isEmpty() ? Map.of() : Map.copyOf(new EnumMap<>(unknown));
     }
 
-    private static Room fromSaved(UUID id, int gridIndex, int size, Optional<GlobalPos> host, Map<Direction, Either<RoomTunnel<?>, BlockPos>> tunnels,
-                                  Map<Direction, OldRedstone> redstone, Map<Direction, OldKinetic> kinetic, Optional<EntryPoint> entry) {
+    private static Room fromSaved(UUID id, int gridIndex, int size, Optional<GlobalPos> host, Map<Direction, Saved> tunnels,
+                                  Optional<EntryPoint> entry) {
         Map<Direction, RoomTunnel<?>> faces = new EnumMap<>(Direction.class);
-        tunnels.forEach((face, saved) -> faces.put(face, saved.map(tunnel -> tunnel, wall -> new RoomTunnel<>(ModTunnelKinds.TRANSFER.get(), wall, TunnelMode.PASSTHROUGH))));
-        redstone.forEach((face, tunnel) -> faces.putIfAbsent(face, new RoomTunnel<>(ModTunnelKinds.REDSTONE.get(), tunnel.pos(), new RedstoneSignal(tunnel.mode(), tunnel.power()))));
-        kinetic.forEach((face, tunnel) -> faces.putIfAbsent(face, new RoomTunnel<>(ModTunnelKinds.KINETIC.get(), tunnel.pos(), tunnel.mode())));
-        return new Room(id, gridIndex, size, host, faces, entry);
+        Map<Direction, UnknownTunnel> unknown = new EnumMap<>(Direction.class);
+        tunnels.forEach((face, saved) -> {
+            switch (saved) {
+                case Saved.Known known -> faces.put(face, known.tunnel());
+                case Saved.Raw raw -> unknown.put(face, raw.tunnel());
+            }
+        });
+        return new Room(id, gridIndex, size, host, faces, unknown, entry);
     }
 
-    private Map<Direction, Either<RoomTunnel<?>, BlockPos>> savedTunnels() {
-        Map<Direction, Either<RoomTunnel<?>, BlockPos>> saved = new EnumMap<>(Direction.class);
-        faces.forEach((face, tunnel) -> saved.put(face, Either.left(tunnel)));
+    private Map<Direction, Saved> savedTunnels() {
+        Map<Direction, Saved> saved = new EnumMap<>(Direction.class);
+        faces.forEach((face, tunnel) -> saved.put(face, new Saved.Known(tunnel)));
+        unknown.forEach((face, tunnel) -> saved.put(face, new Saved.Raw(tunnel)));
         return saved;
+    }
+
+    /** One saved {@code tunnels} entry: a registered kind's tunnel, or an unknown kind's raw entry. */
+    private sealed interface Saved {
+        record Known(RoomTunnel<?> tunnel) implements Saved {}
+
+        record Raw(UnknownTunnel tunnel) implements Saved {}
+
+
+        /**
+         * Reads an entry as a registered kind's tunnel; failing that, keeps it raw if it has at least a kind id and a
+         * wall. Raw entries are written back exactly as they were read.
+         */
+        Codec<Saved> CODEC = new Codec<>() {
+            @Override
+            public <T> DataResult<Pair<Saved, T>> decode(DynamicOps<T> ops, T input) {
+                DataResult<Pair<RoomTunnel<?>, T>> known = RoomTunnel.CODEC.decode(ops, input);
+                if (known.result().isPresent()) return known.map(pair -> Pair.of(new Saved.Known(pair.getFirst()), pair.getSecond()));
+                UnknownTunnel raw = UnknownTunnel.read(new Dynamic<>(ops, input)).result().orElse(null);
+                if (raw == null) return known.map(pair -> Pair.of(new Saved.Known(pair.getFirst()), pair.getSecond()));
+                if (TunnelKinds.REGISTRY.containsKey(raw.kind())) {
+                    TinyTunnels.LOGGER.warn("Couldn't read a {} tunnel at {}; keeping it as it was saved: {}", raw.kind(), raw.wall().toShortString(),
+                            known.error().map(DataResult.Error::message).orElse("?"));
+                }
+                return DataResult.success(Pair.of(new Saved.Raw(raw), ops.empty()));
+            }
+
+            @Override
+            public <T> DataResult<T> encode(Saved input, DynamicOps<T> ops, T prefix) {
+                return switch (input) {
+                    case Saved.Known known -> RoomTunnel.CODEC.encode(known.tunnel(), ops, prefix);
+                    case Saved.Raw raw -> DataResult.success(raw.tunnel().saved().convert(ops).getValue());
+                };
+            }
+        };
     }
 
     /** The public, read-only view of this room as it is now. */
@@ -88,15 +129,15 @@ public record Room(UUID id, int gridIndex, int size, Optional<GlobalPos> host, M
     }
 
     public Room withHost(Optional<GlobalPos> host) {
-        return new Room(id, gridIndex, size, host, faces, entry);
+        return new Room(id, gridIndex, size, host, faces, unknown, entry);
     }
 
     public Room withFaces(Map<Direction, RoomTunnel<?>> faces) {
-        return new Room(id, gridIndex, size, host, faces, entry);
+        return new Room(id, gridIndex, size, host, faces, unknown, entry);
     }
 
     public Room withEntry(Optional<EntryPoint> entry) {
-        return new Room(id, gridIndex, size, host, faces, entry);
+        return new Room(id, gridIndex, size, host, faces, unknown, entry);
     }
 
     /** The tunnel on {@code face}, of any kind, or null. */
@@ -125,9 +166,23 @@ public record Room(UUID id, int gridIndex, int size, Optional<GlobalPos> host, M
         return count;
     }
 
-    /** True if the face has a tunnel of any kind. */
+    /** True if the face has a tunnel of any kind, including an unknown one. */
     public boolean isFaceUsed(Direction face) {
-        return faces.containsKey(face);
+        return faces.containsKey(face) || unknown.containsKey(face);
+    }
+
+    /** The kind id of the unknown tunnel on {@code face}, or null if there's none (or it's a registered kind). */
+    public @Nullable ResourceLocation unknownKind(Direction face) {
+        UnknownTunnel tunnel = unknown.get(face);
+        return tunnel == null ? null : tunnel.kind();
+    }
+
+    /** The face of the unknown tunnel whose wall is at {@code pos}, or null. */
+    public @Nullable Direction unknownFaceAt(BlockPos pos) {
+        for (Map.Entry<Direction, UnknownTunnel> entry : unknown.entrySet()) {
+            if (entry.getValue().wall().equals(pos)) return entry.getKey();
+        }
+        return null;
     }
 
     /**
@@ -156,22 +211,5 @@ public record Room(UUID id, int gridIndex, int size, Optional<GlobalPos> host, M
     public @Nullable Direction faceAt(BlockPos pos, TunnelKind<?> kind) {
         Direction face = faceAt(pos);
         return face != null && faces.get(face).kind() == kind ? face : null;
-    }
-
-    // The dev-world format's redstone and kinetic maps, only for reading old saves.
-
-    private record OldRedstone(BlockPos pos, RedstoneMode mode, int power) {
-        static final Codec<OldRedstone> CODEC = RecordCodecBuilder.create(i -> i.group(
-                BlockPos.CODEC.fieldOf("pos").forGetter(OldRedstone::pos),
-                RedstoneMode.CODEC.fieldOf("mode").forGetter(OldRedstone::mode),
-                ExtraCodecs.intRange(0, 15).optionalFieldOf("power", 0).forGetter(OldRedstone::power)
-        ).apply(i, OldRedstone::new));
-    }
-
-    private record OldKinetic(BlockPos pos, RedstoneMode mode) {
-        static final Codec<OldKinetic> CODEC = RecordCodecBuilder.create(i -> i.group(
-                BlockPos.CODEC.fieldOf("pos").forGetter(OldKinetic::pos),
-                RedstoneMode.CODEC.fieldOf("mode").forGetter(OldKinetic::mode)
-        ).apply(i, OldKinetic::new));
     }
 }

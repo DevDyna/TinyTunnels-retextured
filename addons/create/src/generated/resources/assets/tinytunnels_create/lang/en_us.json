@@ -1,0 +1,22 @@
+{
+  "block.tinytunnels_create.kinetic_port": "Kinetic Port",
+  "block.tinytunnels_create.kinetic_tunnel_wall": "Kinetic Tunnel Wall",
+  "config.jade.plugin_tinytunnels_create.kinetic_port": "Kinetic port",
+  "config.jade.plugin_tinytunnels_create.kinetic_tunnel": "Kinetic tunnel",
+  "item.tinytunnels_create.kinetic_tunnel": "Kinetic Tunnel",
+  "jade.tinytunnels_create.blocked_same_source": "Blocked: same source on both sides",
+  "jade.tinytunnels_create.links_to": "Links to the %s side: %s",
+  "jade.tinytunnels_create.not_linked": "Not linked",
+  "jade.tinytunnels_create.overstressed": "overstressed",
+  "message.tinytunnels_create.kinetic_tunnel.in": "Rotation in from the machine's %s side",
+  "message.tinytunnels_create.kinetic_tunnel.out": "Rotation out to the machine's %s side",
+  "tinytunnels_create.face.down": "bottom",
+  "tinytunnels_create.face.east": "east",
+  "tinytunnels_create.face.north": "north",
+  "tinytunnels_create.face.south": "south",
+  "tinytunnels_create.face.up": "top",
+  "tinytunnels_create.face.west": "west",
+  "tunnel_kind.tinytunnels_create.kinetic": "Kinetic Tunnel",
+  "tunnel_kind.tinytunnels_create.kinetic.in": "In",
+  "tunnel_kind.tinytunnels_create.kinetic.out": "Out"
+}

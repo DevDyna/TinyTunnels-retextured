@@ -22,6 +22,7 @@ public class MachineItem extends BlockItem {
         UUID roomId = stack.get(ModDataComponents.ROOM_ID.get());
         if (roomId == null) {
             tooltip.add(Component.translatable("tooltip.tinytunnels.machine.unbound").withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.translatable("tooltip.tinytunnels.machine.copy_hint").withStyle(ChatFormatting.DARK_GRAY));
         } else {
             String shortId = roomId.toString().substring(0, 8);
             tooltip.add(Component.translatable("tooltip.tinytunnels.machine.bound", shortId).withStyle(ChatFormatting.GRAY));

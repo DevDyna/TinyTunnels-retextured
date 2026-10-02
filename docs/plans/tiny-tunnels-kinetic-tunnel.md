@@ -235,7 +235,50 @@ The steps mirror the redstone tunnel from Phase 7a (`docs/plans/tiny-tunnels-pha
 
 ### Why rotation can't loop
 
-With one kinetic face per machine, each machine joins exactly two networks: the one around it and the one in its room. Rooms can't nest inside themselves (`wouldNestInItself`). So machines and networks form a tree, and one tunnel's output can never feed back into its own input. Two sources at different speeds in one network is still possible, and Create handles it the way it always does.
+**Before A7:** with one kinetic face per machine, each machine joined exactly two networks, the one around it and the one in its room, and rooms can't nest inside themselves (`wouldNestInItself`). So machines and networks formed a tree, and one tunnel's output could never feed back into its own input.
+
+**From A7 (several kinetic tunnels per machine) that no longer holds.** Example: walls A and B on one inside network, A OUT and B IN, with ports A and B joined outside. The room drives the outside through A, and the outside drives the room through B. With the motor gone, wall B is still a source in the room, so the loop keeps itself spinning (free energy). With the motor running, the capacity goes round and is counted again. The same can happen across several machines and nested rooms. It isn't only cycles, either. Two OUT tunnels from one room network into one outside network (a "diamond") count the room's spare capacity twice.
+
+**Design (A7.2, agreed and built 2026-10-02):** a guard over the whole link graph, worked out once per server tick in `KineticLinks`.
+
+- **Graph.**
+  - The nodes are Create networks, keyed by (dimension, `KineticNetwork.id`).
+  - Each link is an edge from its consumer end's network to its driving end's network. The driving end's network is null while that end doesn't turn.
+  - A **root** is a network with a real source: any entry in `KineticNetwork.sources` that isn't a link end (a motor, a water wheel).
+- **What the ends publish.** Each tick, both ends write to their link's state:
+  - their network key, or null;
+  - whether that network is a root;
+  - the tick, under the same freshness rule as speed (see "Stale links").
+- **The pass** runs on `ServerTickEvent.Post`. It decides for each link whether it may drive (`allowed`); the driving end reads that on its next tick, one tick behind, like everything else on the link.
+  1. Every root network gets the root set {itself}.
+  2. Repeat until nothing changes. For each link that isn't allowed yet, in a fixed order (room id, then wall position):
+     - `Rc` = the root set of the consumer's network, from the edges allowed so far.
+     - Skip the link if `Rc` is empty: it isn't powered by anything real.
+     - If the driving network is null (that end isn't turning yet), allow the link.
+     - Otherwise, `Rd` = the driving network's root set (its own root, plus what edges allowed so far bring in). Allow the link only if `Rc` and `Rd` share no root.
+     - When a link is allowed, add `Rc` to the driving network's root set, and pass it on downstream.
+  3. Root sets only grow, so the pass ends. Links not allowed at the end are blocked.
+- **A blocked link** behaves like a stale one: its driving end generates 0 and offers no capacity, and publishes no demand. Its consumer claims nothing. Jade and the goggles say "Blocked: same source on both sides" (`jade.tinytunnels_create.blocked_same_source`). One message for both reasons, because a diamond isn't a loop: either way the network it would drive is already fed by the same source. A link that isn't allowed only because nothing powers it (an empty `Rc`) isn't "blocked": it generates nothing either way, and shows as an idle link ("Links to the east side: In, 0 RPM, 0 SU"). That case was split out in A7.5, after the user saw the "same source" message on an unpowered IN tunnel.
+- **The cases:**
+  - **Loop, motor running:** A is allowed (`Rc` = {room}, the outside has no root), and the outside's set becomes {room}. B then has `Rc` = {room} and `Rd` = {room}: they share a root, so B is blocked. The room drives the outside, and nothing comes back.
+  - **Loop, motor gone:** nothing is a root, so every `Rc` is empty and every link is blocked. It all stops within a couple of ticks. No free energy, and it can't start by itself.
+  - **Diamond:** the first link in the fixed order is allowed and the second shares its root, so it's blocked. Capacity is counted once.
+  - **Independent sources:** two rooms with their own wheels feeding one outside line, or an outside motor plus a room. The root sets don't overlap, so both are allowed and the capacities add up. Two sources at different speeds in one network is Create's normal overpower-or-break behaviour, as before.
+  - **Several machines, nested rooms:** the same graph; keying networks by dimension keeps rooms and worlds apart.
+- **No flicker.** Edges and root sets follow the network layout, not who is driving right now. A blocked driving end stays a member of the network it's in, which is turned from elsewhere, so its edge and the decision stay the same tick after tick. The decision changes only when the layout or a root changes: a block placed or broken, a motor stopped, a tunnel moved or flipped.
+- **Stress, a related fix.** The driving end publishes as demand its share of its network's stress, `stress × (its capacity / the network's capacity)`, instead of all of it. With one link and nothing else it's all of it, as before. With an outside motor or a second room on the line, each upstream only pays its share. Today, a link into a line that also has a motor charges the room for the whole load. Together with the root rule, capacity and demand are each counted once.
+- **Hardening after `loop_nested` failed once (2026-10-02).** The pass had accepted readings up to 2 ticks old, so one pass could mix the state before and after a motor was removed and let a loop link start for a moment. If, during that blip, a port and the shaft next to it became each other's Create source, they kept turning with no generator. A blocked end never checked for that. Three changes:
+  1. The pass uses readings at most 1 tick old (was 2).
+  2. Starting needs the link allowed in this pass and in at least 2 of the last 3 (`mayDrive`); stopping is immediate.
+  3. Every end, whatever its role and whether blocked, runs the source-loop check every tick. It drops the end only on a real loop: the source chain comes back to the end, or goes round in a circle. That clears the blocks it held. A dropped consumer is told to rejoin (`updateSpeed`) whatever real network is next to it.
+  - **A first version of this hardening** (readings from this tick only, two passes in a row, and also dropping a chain that ends at a block driving nothing) left links that never started under full-suite load. A consumer dropped by the extra condition, for example while its upstream hadn't started yet, was never told to rejoin. It stayed at 0, published no network, and its link never got a root. Points 1 and 2 were briefly the strict version ("this tick only", "two passes in a row"). That made links fail to start now and then under full-suite load (`loop_nested`, `kinetic_toggle`). The looser rules are back (user's decision, 2026-10-02): they ride over a tick that one end misses under server load, which a lagging real server can hit too, not only GameTests.
+- **The A6.8 source-loop guard** now runs on every end (point 3 above). It works inside one network, on Create's per-block `source` pointers; this guard works between networks, across links. A blocked end stops through the normal speed-to-0 path (detach while its speed holds), so it doesn't leave a Create source loop behind.
+- **Stale links:** an end that isn't fresh publishes no network, so its edge is missing for that tick. A missing edge only takes power away; it never adds a loop. A fresh consumer with a stale driving end counts as "driving network null" and is allowed, then checked properly once that end is fresh.
+- **Cost:** one pass over the links per server tick, nothing per block. Links are few.
+- **The link already driving keeps the line (2026-10-02, found in game at step 30):** the guard visits links allowed on the last pass first, so in a diamond a newcomer (a port placed later, or a tunnel flipped to drive the same line) is the one blocked. A driving end that changes role (flip, or a new port) also restarts its link's start history. Before, the newcomer could take over at once while the old link still turned the line, and two sources turning it opposite ways made Create break the new port.
+- **Scope:** the guard covers loops that pass through a tunnel. A loop made only of Create blocks, with no tunnel in it, is Create's own behaviour, not ours.
+
+**A7.1 (several per machine)** needs only `maxPerRoom` = 6. `KineticLinks` is already keyed by room and wall. The port finds its tunnel by its own face, and the wall by its own position, so nothing else assumed one per room.
 
 ### Stale links
 

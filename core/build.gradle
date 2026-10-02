@@ -25,12 +25,6 @@ repositories {
         forRepository { maven { name = "Modrinth"; url = "https://api.modrinth.com/maven" } }
         filter { includeGroup "maven.modrinth" }
     }
-    // Create's maven, only for Ponder: Create's block entities extend a Ponder interface, so compiling
-    // against them needs it. At runtime Ponder comes bundled inside the Create jar.
-    exclusiveContent {
-        forRepository { maven { name = "Create"; url = "https://maven.createmod.net" } }
-        filter { includeGroup "net.createmod.ponder" }
-    }
 }
 
 base {
@@ -75,6 +69,10 @@ neoForge {
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
             // Its own directory, so GameTests never share run/world with runServer or the other branch.
             gameDirectory = rootProject.file('run/gametest')
+            // -PonlyTest=<name> runs just that Tiny Tunnels GameTest (for repeating a flaky one).
+            if (project.hasProperty('onlyTest')) {
+                systemProperty 'tinytunnels.onlyTest', project.property('onlyTest').toString()
+            }
         }
 
         data {
@@ -136,6 +134,7 @@ configurations {
 
 dependencies {
     // Test mods for tunnels. localRuntime: loaded in dev runs only, never a dependency of Tiny Tunnels.
+    // Create isn't here: core runs without it; the Create addon's runs (addons/create) load it.
     // Pinned to Modrinth version IDs for 1.21.1 NeoForge; each accepts NeoForge 21.1.217.
     localRuntime "maven.modrinth:pipez:BPGKb8pi"            // neoforge-1.21.1-1.2.31: item/fluid/energy pipes
     localRuntime "maven.modrinth:energized-power:gGPYiXzr"  // 3.0.1+1.21.1: FE generators and cables
@@ -145,20 +144,12 @@ dependencies {
     localRuntime "maven.modrinth:guideme:hFpGwC6q"          // 21.1.19: required by AE2
     localRuntime "maven.modrinth:jei:zHNxmOqp"              // 19.39.0.372-beta: recipe viewer (19.42+ needs NeoForge 21.1.238)
     localRuntime "maven.modrinth:mekanism:5KzzycBT"         // 10.7.19.85: cables, logistical transporters
-    // -PnoCreate leaves Create out of dev runs, to check the mod without it (kinetic tunnel plan, K11).
-    if (!project.hasProperty('noCreate')) {
-        localRuntime "maven.modrinth:create:88L641Un"       // 6.0.8: belts, funnels, chutes, pumps (bundles Flywheel, Ponder, Registrate)
-    }
 
     // Minecraft 26.x ships jspecify; 1.21.1 doesn't. Annotations only, so compile-time is enough.
     compileOnly "org.jspecify:jspecify:1.0.0"
 
     // Jade's API for our tooltip plugin (compat/jade). Optional: found by Jade via @WailaPlugin, never a dependency.
     compileOnly "maven.modrinth:jade:eYz2YBGT"
-
-    // Create's API for the kinetic tunnel (compat/create). Optional: only touched when Compat.CREATE is set.
-    compileOnly "maven.modrinth:create:88L641Un"
-    compileOnly("net.createmod.ponder:Ponder-NeoForge-1.21.1:1.0.64") { transitive = false } // the version bundled in Create 6.0.8
 
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime

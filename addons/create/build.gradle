@@ -1,2 +1,166 @@
-// The Create addon (tinytunnels_create): the kinetic tunnel and its port block.
-// Empty until phase A6 of docs/plans/tiny-tunnels-api-and-addons.md moves compat/create here.
+// The Create addon (tinytunnels_create): the kinetic tunnel and its port block, built only on core's public API
+// (dev.thefern2.tinytunnels.api). See docs/plans/tiny-tunnels-api-and-addons.md, phase A6.
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev'
+    id 'idea'
+}
+
+version = create_addon_version
+group = mod_group_id
+
+base {
+    archivesName = create_addon_mod_id
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+sourceSets.main.resources {
+    srcDir('src/generated/resources')
+    exclude("**/*.bbmodel")
+    exclude("src/generated/**/.cache")
+}
+
+repositories {
+    mavenCentral()
+    exclusiveContent {
+        forRepository { maven { name = "Modrinth"; url = "https://api.modrinth.com/maven" } }
+        filter { includeGroup "maven.modrinth" }
+    }
+    // Ponder and Flywheel, for compiling against Create's block entities and visuals (both bundled inside the
+    // Create jar at runtime).
+    exclusiveContent {
+        forRepository { maven { name = "Create"; url = "https://maven.createmod.net" } }
+        filter {
+            includeGroup "net.createmod.ponder"
+            includeGroup "dev.engine-room.flywheel"
+        }
+    }
+}
+
+neoForge {
+    version = project.neo_version
+
+    parchment {
+        mappingsVersion = project.parchment_mappings_version
+        minecraftVersion = project.parchment_minecraft_version
+    }
+
+    // These runs load core and the addon together, with Create. Core's own runs (:core:run*) have neither.
+    runs {
+        client {
+            client()
+            gameDirectory = rootProject.file('run')
+            systemProperty 'neoforge.enabledGameTestNamespaces', "${mod_id},${create_addon_mod_id}"
+        }
+
+        server {
+            server()
+            programArgument '--nogui'
+            gameDirectory = rootProject.file('run/server')
+            systemProperty 'neoforge.enabledGameTestNamespaces', "${mod_id},${create_addon_mod_id}"
+        }
+
+        // Core's GameTests and the addon's, with the addon loaded. Its own directory, so it can't clash with
+        // core's GameTest run (each run deletes its world).
+        gameTestServer {
+            type = "gameTestServer"
+            gameDirectory = rootProject.file('run/gametest-create')
+            systemProperty 'neoforge.enabledGameTestNamespaces', "${mod_id},${create_addon_mod_id}"
+            if (project.hasProperty('onlyTest')) {
+                systemProperty 'tinytunnels.onlyTest', project.property('onlyTest').toString()
+            }
+        }
+
+        data {
+            data()
+            gameDirectory = rootProject.file('run/data-create')
+            programArguments.addAll '--mod', create_addon_mod_id, '--all',
+                    '--output', file('src/generated/resources/').getAbsolutePath(),
+                    '--existing', file('src/main/resources/').getAbsolutePath(),
+                    '--existing', rootProject.file('core/src/main/resources/').getAbsolutePath(),
+                    '--existing', rootProject.file('core/src/generated/resources/').getAbsolutePath()
+        }
+
+        configureEach {
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(project(':core').sourceSets.main)
+        }
+        "${create_addon_mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+    }
+}
+
+def gameTestWorld = rootProject.file('run/gametest-create/world')
+tasks.named('runGameTestServer') {
+    // `./gradlew runGameTestServer` runs core's and this one; one after the other, not in parallel, so a failure
+    // in one doesn't kill the other and two servers don't load the machine at once.
+    mustRunAfter(':core:runGameTestServer')
+    doFirst {
+        gameTestWorld.deleteDir()
+    }
+}
+
+configurations {
+    runtimeClasspath.extendsFrom localRuntime
+}
+
+dependencies {
+    // Core, with its public API. In-repo addons depend on the project, never on Maven.
+    implementation project(':core')
+
+    compileOnly "org.jspecify:jspecify:1.0.0"
+
+    // Create: a required dependency of the addon.
+    compileOnly "maven.modrinth:create:88L641Un"                                                     // 6.0.8
+    compileOnly("net.createmod.ponder:Ponder-NeoForge-1.21.1:1.0.64") { transitive = false }         // bundled in Create 6.0.8
+    compileOnly("dev.engine-room.flywheel:flywheel-neoforge-1.21.1:1.0.5") { transitive = false }  // bundled in Create 6.0.8
+    localRuntime "maven.modrinth:create:88L641Un"
+
+    // Jade's API for the addon's own tooltip plugin. Optional at runtime.
+    compileOnly "maven.modrinth:jade:eYz2YBGT"
+
+    // Dev-run test mods, as in core.
+    localRuntime "maven.modrinth:jade:eYz2YBGT"             // 15.10.6
+    localRuntime "maven.modrinth:jei:zHNxmOqp"              // 19.39.0.372-beta
+    localRuntime "maven.modrinth:pipez:BPGKb8pi"            // neoforge-1.21.1-1.2.31
+}
+
+var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
+    var replaceProperties = [
+            minecraft_version_range: minecraft_version_range,
+            neo_version_range      : neo_version_range,
+            loader_version_range   : loader_version_range,
+            mod_id                 : mod_id,
+            mod_license            : mod_license,
+            create_addon_mod_id    : create_addon_mod_id,
+            create_addon_mod_name  : create_addon_mod_name,
+            create_addon_version   : create_addon_version,
+            create_addon_core_range: create_addon_core_range,
+            create_version_range   : create_version_range,
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from "src/main/templates"
+    into "build/generated/sources/modMetadata"
+}
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}

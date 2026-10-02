@@ -48,7 +48,7 @@ public final class CapabilityUpdates {
 
     /**
      * Everything that exposes this room's tunnels changed: the machine, and every tunnel wall whose kind has
-     * capabilities (not redstone or kinetic). Pass
+     * capabilities (not redstone). Pass
      * the room as it was <em>before</em> a change when tunnels were removed, so their old positions
      * get notified too; the machine's face flags are synced from the latest data either way.
      */

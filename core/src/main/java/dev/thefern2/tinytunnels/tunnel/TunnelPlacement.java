@@ -13,8 +13,7 @@ import net.minecraft.world.item.context.UseOnContext;
 
 /**
  * What every tunnel item does on use: on a room's wall, from inside, it places a tunnel of its kind through
- * {@link TunnelChanges#place} and uses up one item. Anywhere else the click passes. Public for the kinetic tunnel
- * in {@code compat/create}.
+ * {@link TunnelChanges#place} and uses up one item. Anywhere else the click passes.
  */
 public final class TunnelPlacement {
     public static <D> InteractionResult place(UseOnContext context, TunnelKind<D> kind, D data) {

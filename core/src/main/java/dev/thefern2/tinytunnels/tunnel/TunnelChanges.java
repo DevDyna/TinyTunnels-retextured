@@ -2,6 +2,7 @@ package dev.thefern2.tinytunnels.tunnel;
 
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.UnaryOperator;
 
 import org.jspecify.annotations.Nullable;
 
@@ -74,6 +75,26 @@ public final class TunnelChanges {
         return new PlaceResult.Placed(face);
     }
 
+    /**
+     * Puts a copy of {@code tunnel} into another room, on the same face and the same wall position relative to the
+     * room: for copying a room. No placement checks (the room is new and has the same shape); data goes through the
+     * core kinds' {@code movedData}, so nothing transient (redstone power) is copied. Then a placement's follow-ups
+     * and {@link TunnelEvent.Added}.
+     */
+    public static <D> void copyInto(ServerLevel rooms, Room from, UUID roomId, Direction face, RoomTunnel<D> tunnel) {
+        Room room = current(rooms, roomId);
+        BlockPos wall = room.geometry().min().offset(tunnel.wall().subtract(from.geometry().min()));
+        Direction inward = room.geometry().inwardNormal(wall);
+        if (inward == null) return;
+        TunnelKind<D> kind = tunnel.kind();
+        D data = kind instanceof CoreKind<?> core ? movedData(core, tunnel.data()) : tunnel.data();
+        ShellProtection.edit(() -> rooms.setBlock(wall, kind.wallState(face, inward, data), Block.UPDATE_ALL));
+        RoomData.get(rooms.getServer()).setTunnel(roomId, face, new RoomTunnel<>(kind, wall, data));
+        refresh(rooms, kind, room, current(rooms, roomId));
+        if (kind instanceof CoreKind<?> core) core.added(rooms.getServer(), roomId, face);
+        post(new TunnelEvent.Added(rooms, current(rooms, roomId).view(), current(rooms, roomId).view(face)));
+    }
+
     /** Moves the tunnel on {@code face} to {@code newFace}: same wall block (so its block entity stays), same data. */
     public static boolean move(ServerLevel rooms, UUID roomId, Direction face, Direction newFace) {
         Room room = RoomData.get(rooms.getServer()).room(roomId).orElse(null);
@@ -98,6 +119,46 @@ public final class TunnelChanges {
         if (kind instanceof CoreKind<?> core) core.moved(rooms.getServer(), room.id(), face, newFace);
         Room posted = current(rooms, room.id());
         post(new TunnelEvent.Moved(rooms, posted.view(), Objects.requireNonNull(posted.view(newFace)), face));
+    }
+
+    /**
+     * Moves every tunnel of the room to {@code turn.apply(face)} at once, for turning a machine: a plain {@link #move}
+     * can't, since each move needs a free face. Each moved tunnel gets what a move gives it (its wall's state, the
+     * core kinds' {@code movedData} and {@code moved}, a {@link TunnelEvent.Moved}), posted after all have moved.
+     * {@code turn} must be one-to-one.
+     */
+    public static void turn(ServerLevel rooms, UUID roomId, UnaryOperator<Direction> turn) {
+        RoomData roomData = RoomData.get(rooms.getServer());
+        Room before = roomData.room(roomId).orElse(null);
+        if (before == null) return;
+        roomData.turnFaces(roomId, turn);
+        before.faces().forEach((face, tunnel) -> {
+            if (turn.apply(face) != face) turnWall(rooms, before, turn.apply(face), tunnel);
+        });
+        Room after = current(rooms, roomId);
+        CapabilityUpdates.roomChanged(rooms.getServer(), before);
+        CapabilityUpdates.roomChanged(rooms.getServer(), after);
+        before.faces().forEach((face, tunnel) -> {
+            Direction newFace = turn.apply(face);
+            if (newFace == face) return;
+            if (tunnel.kind() instanceof CoreKind<?> core) core.moved(rooms.getServer(), roomId, face, newFace);
+        });
+        Room posted = current(rooms, roomId);
+        before.faces().forEach((face, tunnel) -> {
+            Direction newFace = turn.apply(face);
+            if (newFace != face) post(new TunnelEvent.Moved(rooms, posted.view(), Objects.requireNonNull(posted.view(newFace)), face));
+        });
+    }
+
+    /** One tunnel's part of {@link #turn}: its moved data and its wall's state for the new face. */
+    private static <D> void turnWall(ServerLevel rooms, Room room, Direction newFace, RoomTunnel<D> tunnel) {
+        TunnelKind<D> kind = tunnel.kind();
+        D data = kind instanceof CoreKind<?> core ? movedData(core, tunnel.data()) : tunnel.data();
+        RoomData.get(rooms.getServer()).setData(room.id(), newFace, kind, data);
+        Direction inward = room.geometry().inwardNormal(tunnel.wall());
+        if (inward != null && rooms.isLoaded(tunnel.wall())) {
+            ShellProtection.edit(() -> rooms.setBlock(tunnel.wall(), kind.wallState(newFace, inward, data), Block.UPDATE_ALL));
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -173,11 +234,13 @@ public final class TunnelChanges {
         post(new TunnelEvent.DataChanged(rooms, after.view(), Objects.requireNonNull(after.view(face)), tunnel.data()));
     }
 
-    /** What the player sees after placing a tunnel, or after the wrench moved it to {@code face}. */
-    @SuppressWarnings("unchecked")
+    /**
+     * What the player sees after placing a tunnel, or after the wrench moved it to {@code face}: the kind's
+     * {@link TunnelKind#placedMessage}, or core's generic one.
+     */
     public static <D> Component placedMessage(TunnelKind<D> kind, Direction face, D data) {
-        if (kind instanceof CoreKind<?> core) return ((CoreKind<D>) core).placedMessage(face, data);
-        return Component.translatable("message.tinytunnels.tunnel.mapped", TunnelWallBlock.faceName(face));
+        Component message = kind.placedMessage(face, data);
+        return message != null ? message : Component.translatable("message.tinytunnels.tunnel.mapped", TunnelWallBlock.faceName(face));
     }
 
     /** Pipes look again on both ends (kinds with capabilities), or just the machine's face looks resync. */

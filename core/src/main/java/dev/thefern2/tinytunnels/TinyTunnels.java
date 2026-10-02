@@ -4,8 +4,6 @@ import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 
-import dev.thefern2.tinytunnels.compat.Compat;
-import dev.thefern2.tinytunnels.compat.create.CreateBlocks;
 import dev.thefern2.tinytunnels.gametest.TinyTunnelsGameTests;
 import dev.thefern2.tinytunnels.registry.ModAttachments;
 import dev.thefern2.tinytunnels.registry.ModBlockEntities;
@@ -36,7 +34,6 @@ public class TinyTunnels {
 
         modContainer.registerConfig(ModConfig.Type.SERVER, Config.SPEC);
         TinyTunnelsGameTests.register(modEventBus);
-        if (Compat.CREATE) CreateBlocks.register();
     }
 
     public static ResourceLocation id(String path) {

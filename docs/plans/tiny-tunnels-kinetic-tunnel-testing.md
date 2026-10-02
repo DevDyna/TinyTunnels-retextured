@@ -76,6 +76,8 @@ If the quick test passes, the rest can wait. Note anything odd in "Notes".
 
 ## Without Create (optional, K11)
 
+> **Since A6.4 (2026-10-01):** the kinetic tunnel moved to the Create addon, and `-PnoCreate` no longer exists. Core alone is `./gradlew :core:runClient`; with the addon, `./gradlew :addons:create:runClient`. This section is replaced by section 8 of `tiny-tunnels-create-addon-testing.md`.
+
 16. Save a world with a kinetic tunnel and a running line. Then start the client without Create:
 
 ```
@@ -108,6 +110,8 @@ Finish the paused Create sections of `tiny-tunnels-1-21-1-testing.md`: 6a, 6a-in
 ### Known issue: room frozen after placing the machine again (found 2026-09-29, not fixed, low priority)
 
 **Status 2026-09-30:** not reachable by hand. It needs the machine back within a few ticks. It could still happen when code removes and places the machine: a Create contraption moving it, schematic tools, `/setblock`. Revisit if one of those shows a frozen room, or when the API work (`tiny-tunnels-api-and-addons.md`) changes `RoomTickets`.
+
+**2026-10-01:** the core GameTest `kinetic_machine_replaced` (100-tick wait) failed in 2 of 4 runs while the core and addon GameTest servers ran in parallel, and never in a solo run. The outside stayed at 0 RPM after placing again, as before. Later the same day it also failed in 2 of 3 solo runs of `:addons:create:runGameTestServer` (core's tests run there too, with Create, now beside the addon's 13 tests). The addon's own port version (`tinytunnels_create.kinetic_machine_replaced`, 40-tick wait) passed in all 3. Not chased; the core test goes in A6.4.
 
 
 - **Symptom:** GameTest `kinetic_machine_replaced` failed about 1 run in 4 when it placed the machine back **3 ticks** after removing it. After the machine was placed again, the outside stayed at 0 RPM.

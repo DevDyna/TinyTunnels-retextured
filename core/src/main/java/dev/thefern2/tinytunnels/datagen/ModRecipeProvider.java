@@ -1,8 +1,5 @@
 package dev.thefern2.tinytunnels.datagen;
 
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.common.conditions.ModLoadedCondition;
 import java.util.concurrent.CompletableFuture;
 
 import dev.thefern2.tinytunnels.machine.MachineSize;
@@ -67,23 +64,6 @@ public class ModRecipeProvider extends RecipeProvider {
         ShapelessRecipeBuilder.shapeless(RecipeCategory.REDSTONE, ModItems.REDSTONE_TUNNEL.get())
                 .requires(ModItems.TUNNEL.get())
                 .requires(Items.COMPARATOR)
-                .unlockedBy("has_tunnel", has(ModItems.TUNNEL.get()))
-                .save(output);
-        // Create only (runData runs with Create); the recipe loads only when Create is there.
-        if (ModItems.KINETIC_TUNNEL != null) {
-            Item shaft = BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("create", "shaft"));
-            Item casing = BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("create", "andesite_casing"));
-            ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ModItems.KINETIC_TUNNEL.get())
-                    .requires(ModItems.TUNNEL.get())
-                    .requires(shaft)
-                    .requires(casing)
-                    .unlockedBy("has_tunnel", has(ModItems.TUNNEL.get()))
-                    .save(output.withConditions(new ModLoadedCondition("create")));
-        }
-        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ModItems.TUNNEL_WRENCH.get())
-                .pattern("I I").pattern(" C ").pattern(" I ")
-                .define('I', Tags.Items.INGOTS_IRON)
-                .define('C', Tags.Items.INGOTS_COPPER)
                 .unlockedBy("has_tunnel", has(ModItems.TUNNEL.get()))
                 .save(output);
     }

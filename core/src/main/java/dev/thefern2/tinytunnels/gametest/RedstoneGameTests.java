@@ -262,10 +262,12 @@ final class RedstoneGameTests {
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModItems.REDSTONE_TUNNEL.get()));
         click(helper, wall, player);
         BlockPos machinePos = helper.absolutePos(MACHINE);
-        helper.assertTrue(rooms.getBlockState(wall).is(ModBlocks.REDSTONE_TUNNEL_WALL.get()), "the wall should be a redstone tunnel");
-        helper.assertValueEqual(mode(helper, room, Direction.UP), RedstoneMode.IN, "new tunnel on the first free face (up)");
-        helper.assertTrue(player.getMainHandItem().isEmpty(), "the item should be used up");
+        // Everything after the click waits: a player is never this fast, and a result may land a tick later.
         helper.succeedWhen(() -> {
+            helper.assertTrue(rooms.getBlockState(wall).is(ModBlocks.REDSTONE_TUNNEL_WALL.get()), "the wall should be a redstone tunnel, got " + rooms.getBlockState(wall));
+            RedstoneMode mode = mode(helper, room, Direction.UP);
+            helper.assertTrue(mode == RedstoneMode.IN, "new tunnel on the first free face (up) should be IN, got " + mode);
+            helper.assertTrue(player.getMainHandItem().isEmpty(), "the item should be used up, got " + player.getMainHandItem());
             MachineFaces faces = TestRooms.faces(helper.getLevel(), machinePos);
             helper.assertTrue(faces.has(Direction.UP, MachineFaces.REDSTONE), "up port should be redstone");
             helper.assertFalse(faces.has(Direction.UP, MachineFaces.TRANSFER), "up port is not an item tunnel");

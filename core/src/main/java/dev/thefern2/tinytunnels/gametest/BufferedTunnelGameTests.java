@@ -142,18 +142,29 @@ final class BufferedTunnelGameTests {
     static void modeCycle(GameTestHelper helper) {
         Setup s = setup(helper, Direction.NORTH, Direction.EAST, TunnelMode.PASSTHROUGH);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        click(s, player);
-        helper.assertValueEqual(s.tunnel().mode(), TunnelMode.BUFFERED_IN, "after one click");
-        click(s, player);
-        helper.assertValueEqual(s.tunnel().mode(), TunnelMode.BUFFERED_OUT, "after two clicks");
-        s.tunnel().setMode(s.rooms(), s.room(), TunnelMode.BUFFERED_IN);
-        TestRooms.insert(faceItems(helper, s, Direction.NORTH), new ItemStack(Items.COBBLESTONE, 5));
-        click(s, player);
-        helper.assertValueEqual(s.tunnel().mode(), TunnelMode.BUFFERED_OUT, "in to out is allowed with contents");
-        click(s, player);
-        helper.assertValueEqual(s.tunnel().mode(), TunnelMode.BUFFERED_OUT, "out to pass-through is refused while not empty");
-        helper.assertValueEqual(buffered(s), 5, "contents kept");
-        helper.succeed();
+        // Each click waits for its result before the next one: a player is never this fast.
+        helper.startSequence()
+                .thenExecute(() -> click(s, player))
+                .thenWaitUntil(() -> TestRooms.assertEquals(helper, s.tunnel().mode(), TunnelMode.BUFFERED_IN, "after one click"))
+                .thenExecute(() -> click(s, player))
+                .thenWaitUntil(() -> TestRooms.assertEquals(helper, s.tunnel().mode(), TunnelMode.BUFFERED_OUT, "after two clicks"))
+                .thenExecute(() -> {
+                    s.tunnel().setMode(s.rooms(), s.room(), TunnelMode.BUFFERED_IN);
+                    TestRooms.insert(faceItems(helper, s, Direction.NORTH), new ItemStack(Items.COBBLESTONE, 5));
+                })
+                .thenWaitUntil(() -> {
+                    TestRooms.assertEquals(helper, s.tunnel().mode(), TunnelMode.BUFFERED_IN, "set back to buffered in");
+                    TestRooms.assertEquals(helper, buffered(s), 5, "contents in");
+                })
+                .thenExecute(() -> click(s, player))
+                .thenWaitUntil(() -> TestRooms.assertEquals(helper, s.tunnel().mode(), TunnelMode.BUFFERED_OUT, "in to out is allowed with contents"))
+                .thenExecute(() -> click(s, player))
+                // A refusal: give it a few ticks to (wrongly) change, then check it didn't.
+                .thenExecuteAfter(3, () -> {
+                    TestRooms.assertEquals(helper, s.tunnel().mode(), TunnelMode.BUFFERED_OUT, "out to pass-through is refused while not empty");
+                    TestRooms.assertEquals(helper, buffered(s), 5, "contents kept");
+                })
+                .thenSucceed();
     }
 
     /** BT-7: wrench removal hands the items back; with fluid inside, the first click warns and the second discards it. */
@@ -163,14 +174,20 @@ final class BufferedTunnelGameTests {
         TestRooms.fill(face, new FluidStack(Fluids.WATER, 500));
         TestRooms.insert(faceItems(helper, s, Direction.NORTH), new ItemStack(Items.COBBLESTONE, 7));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        wrenchClick(player, s.wall());
-        helper.assertTrue(s.rooms().getBlockState(s.wall()).is(ModBlocks.TUNNEL_WALL.get()), "the first click only warns while holding fluid");
-        helper.assertValueEqual(s.tunnel().buffer().fluidContents().getAmount(), 500, "fluid kept after the warning");
-        wrenchClick(player, s.wall());
-        helper.assertTrue(s.rooms().getBlockState(s.wall()).is(ModBlocks.ROOM_WALL.get()), "the second click removes the tunnel");
-        helper.assertValueEqual(player.getInventory().countItem(Items.COBBLESTONE), 7, "buffered cobblestone handed back");
-        helper.assertValueEqual(player.getInventory().countItem(ModItems.TUNNEL.get()), 1, "the tunnel item handed back");
-        helper.succeed();
+        helper.startSequence()
+                .thenExecute(() -> wrenchClick(player, s.wall()))
+                // The first click only warns: give it a few ticks to (wrongly) remove, then check it didn't.
+                .thenExecuteAfter(3, () -> {
+                    helper.assertTrue(s.rooms().getBlockState(s.wall()).is(ModBlocks.TUNNEL_WALL.get()), "the first click only warns while holding fluid, got " + s.rooms().getBlockState(s.wall()));
+                    TestRooms.assertEquals(helper, s.tunnel().buffer().fluidContents().getAmount(), 500, "fluid kept after the warning");
+                })
+                .thenExecute(() -> wrenchClick(player, s.wall()))
+                .thenWaitUntil(() -> {
+                    helper.assertTrue(s.rooms().getBlockState(s.wall()).is(ModBlocks.ROOM_WALL.get()), "the second click removes the tunnel, got " + s.rooms().getBlockState(s.wall()));
+                    TestRooms.assertEquals(helper, player.getInventory().countItem(Items.COBBLESTONE), 7, "buffered cobblestone handed back");
+                    TestRooms.assertEquals(helper, player.getInventory().countItem(ModItems.TUNNEL.get()), 1, "the tunnel item handed back");
+                })
+                .thenSucceed();
     }
 
     /** BT-11: a bucket empties the buffer 1000 mB at a time, and fills it back. */
@@ -179,13 +196,18 @@ final class BufferedTunnelGameTests {
         TestRooms.fill(helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, s.machine(), Direction.NORTH), new FluidStack(Fluids.WATER, 1500));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.BUCKET));
-        useItem(s, player);
-        helper.assertTrue(player.getMainHandItem().is(Items.WATER_BUCKET), "the empty bucket should come back full");
-        helper.assertValueEqual(s.tunnel().buffer().fluidContents().getAmount(), 500, "left in the buffer");
-        useItem(s, player);
-        helper.assertTrue(player.getMainHandItem().is(Items.BUCKET), "the full bucket should empty into the buffer");
-        helper.assertValueEqual(s.tunnel().buffer().fluidContents().getAmount(), 1500, "back in the buffer");
-        helper.succeed();
+        helper.startSequence()
+                .thenExecute(() -> useItem(s, player))
+                .thenWaitUntil(() -> {
+                    helper.assertTrue(player.getMainHandItem().is(Items.WATER_BUCKET), "the empty bucket should come back full, got " + player.getMainHandItem());
+                    TestRooms.assertEquals(helper, s.tunnel().buffer().fluidContents().getAmount(), 500, "left in the buffer");
+                })
+                .thenExecute(() -> useItem(s, player))
+                .thenWaitUntil(() -> {
+                    helper.assertTrue(player.getMainHandItem().is(Items.BUCKET), "the full bucket should empty into the buffer, got " + player.getMainHandItem());
+                    TestRooms.assertEquals(helper, s.tunnel().buffer().fluidContents().getAmount(), 1500, "back in the buffer");
+                })
+                .thenSucceed();
     }
 
     /** BT-8: energy is never buffered: a buffered face still passes energy through (empty here, nothing behind). */

@@ -3,11 +3,7 @@ package dev.thefern2.tinytunnels.registry;
 import java.util.EnumMap;
 import java.util.Map;
 
-import org.jspecify.annotations.Nullable;
-
 import dev.thefern2.tinytunnels.TinyTunnels;
-import dev.thefern2.tinytunnels.compat.Compat;
-import dev.thefern2.tinytunnels.compat.create.CreateBlocks;
 import dev.thefern2.tinytunnels.machine.MachineItem;
 import dev.thefern2.tinytunnels.machine.MachineSize;
 import dev.thefern2.tinytunnels.teleport.ShrinkerItem;
@@ -31,8 +27,6 @@ public final class ModItems {
     public static final DeferredItem<ShrinkerItem> SHRINKER = ITEMS.registerItem("shrinker", ShrinkerItem::new, new Item.Properties().stacksTo(1));
     public static final DeferredItem<TunnelItem> TUNNEL = ITEMS.registerItem("tunnel", TunnelItem::new);
     public static final DeferredItem<RedstoneTunnelItem> REDSTONE_TUNNEL = ITEMS.registerItem("redstone_tunnel", RedstoneTunnelItem::new);
-    /** Create only. */
-    public static final @Nullable DeferredItem<Item> KINETIC_TUNNEL = Compat.CREATE ? ITEMS.registerItem("kinetic_tunnel", CreateBlocks::kineticTunnelItem) : null;
     public static final DeferredItem<Item> TUNNEL_WRENCH = ITEMS.registerSimpleItem("tunnel_wrench", new Item.Properties().stacksTo(1));
 
     private ModItems() {}

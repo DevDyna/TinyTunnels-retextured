@@ -124,6 +124,20 @@ public class RoomData extends SavedData {
         });
     }
 
+    /**
+     * Moves every tunnel (unknown kinds too) from its face to {@code turn.apply(face)}, all at once, keeping walls and
+     * data. {@code turn} must be one-to-one, so no two tunnels end up on one face.
+     */
+    public void turnFaces(UUID id, UnaryOperator<Direction> turn) {
+        update(id, room -> {
+            Map<Direction, RoomTunnel<?>> faces = new EnumMap<>(Direction.class);
+            room.faces().forEach((face, tunnel) -> faces.put(turn.apply(face), tunnel));
+            Map<Direction, UnknownTunnel> unknown = new EnumMap<>(Direction.class);
+            room.unknown().forEach((face, tunnel) -> unknown.put(turn.apply(face), tunnel));
+            return new Room(room.id(), room.gridIndex(), room.size(), room.host(), faces, unknown, room.entry());
+        });
+    }
+
     /** Changes the data of the tunnel on {@code face}, if it's of {@code kind}. */
     public <D> void setData(UUID id, Direction face, TunnelKind<D> kind, D data) {
         updateFaces(id, faces -> {
@@ -145,12 +159,36 @@ public class RoomData extends SavedData {
         update(id, room -> room.withEntry(Optional.of(entry)));
     }
 
-    /** Reserves a new grid slot. The caller builds the walls. */
+    /** Reserves a grid slot: the lowest one a deleted room freed, else a new one. The caller builds the walls. */
     public Room allocate(int size) {
-        Room room = new Room(UUID.randomUUID(), nextGridIndex++, size, Optional.empty(), Map.of(), Optional.empty());
+        int gridIndex = 0;
+        while (gridIndex < nextGridIndex && byGridIndex.containsKey(gridIndex)) gridIndex++;
+        if (gridIndex == nextGridIndex) nextGridIndex++;
+        Room room = new Room(UUID.randomUUID(), gridIndex, size, Optional.empty(), Map.of(), Map.of(), Optional.empty());
         put(room);
         setDirty();
         return room;
+    }
+
+    /** Forgets a room and frees its grid slot. The caller clears its blocks first. */
+    public void delete(UUID id) {
+        Room room = rooms.remove(id);
+        if (room == null) return;
+        byGridIndex.remove(room.gridIndex());
+        setDirty();
+    }
+
+    /**
+     * Puts {@code room} in place of the room with its id, as it is (for example one decoded from a save). Its grid
+     * slot must be the one it already has. For GameTests and repairs; normal changes go through the setters.
+     */
+    public void replace(Room room) {
+        Room old = rooms.get(room.id());
+        if (old != null && old.gridIndex() != room.gridIndex()) {
+            throw new IllegalArgumentException("Room " + room.id() + " is in grid slot " + old.gridIndex() + ", not " + room.gridIndex());
+        }
+        put(room);
+        setDirty();
     }
 
     public void setHost(UUID id, @Nullable GlobalPos host) {

@@ -163,8 +163,8 @@ Posted on `NeoForge.EVENT_BUS`, server side only.
 | Event | When |
 |---|---|
 | `TunnelEvent.Added`, `.Moved`, `.Removed`, `.DataChanged` | After the room data changed. Carries the room dimension, the room, the face (and the old face for `Moved`, the old data for `DataChanged`) and the `Tunnel`. |
-| `MachineEvent.Placed`, `.Removed` | After a machine is bound to its room, and before a machine goes (the room still has its host). |
-| `RoomEvent.StartedTicking`, `.StoppedTicking` | When core adds or drops the room's chunk ticket. Carries the room dimension and the room. |
+| `MachineEvent.Placed`, `.Removed` | After a machine is bound to its room, and before a machine goes (the room still has its host). Only for the room's current host; not on chunk unload. |
+| `RoomEvent.StartedTicking`, `.StoppedTicking` | When core adds or drops the room's chunk ticket. Carries the room dimension and the room. Fired by `RoomTickets`' reconcile, so on the tick after a machine is placed or picked up, not in the same call. |
 
 `DataChanged` fires often for redstone (every power change), so listeners must be cheap. Core itself only redraws a face when the `FaceLook` changes.
 
@@ -221,8 +221,8 @@ A room keeps one map, **face → tunnel**:
 ```
 
 - `data` is decoded with the kind's `dataCodec`.
-- **Unknown kinds:** if the kind isn't registered, core keeps the entry as it was (`kind`, `wall`, raw `data` tag) and saves it back unchanged. It places a generic inert tunnel wall (`tinytunnels:unknown_tunnel_wall`) so the shell has no hole. The face counts as used. When the kind is back, the entry decodes and the shell repair builds the real wall.
-- **Dev worlds:** `Room.CODEC` reads the old `tunnels` / `redstone` / `kinetic` fields once, until the first release. No player world has them.
+- **Unknown kinds:** if the kind isn't registered, core keeps the entry as it was (`kind`, `wall`, raw `data` tag) and saves it back unchanged. It places a generic inert tunnel wall (`tinytunnels:unknown_tunnel_wall`) so the shell has no hole. The face counts as used. When the kind is back, the entry decodes and the shell repair builds the real wall. Also kept raw: an entry of a registered kind whose `data` fails to decode (logged as a warning); its wall is left alone if it's already that kind's block, so a block entity such as a buffer survives. The wrench can't move or remove a raw entry; it says the kind's mod isn't loaded (A5, 2026-10-01).
+- **Dev worlds:** `Room.CODEC` read the old `tunnels` / `redstone` / `kinetic` fields once, until those readers were removed on 2026-10-02 (start new worlds). No player world has them.
 
 ## Checking the design against each kind
 
@@ -277,6 +277,13 @@ A room keeps one map, **face → tunnel**:
 - **Events** extend `net.neoforged.bus.api.Event`, and none can be cancelled. `TunnelEvent` and `RoomEvent` also carry the room dimension (`level()`), so listeners don't have to look it up. `DataChanged` carries the old data. `Moved` keeps the wall; the data stays too, except what a kind resets on a move (redstone's power goes to 0, as before A2).
 - **Nullability:** `org.jspecify.annotations.Nullable`, as in the rest of the code.
 - **`RoomShape`** has `contains`, `isInterior`, `isShell`, `wallCenter`, `inwardNormal`. Core's `RoomGeometry` can implement it.
+
+## Added for the Create addon (A6, 2026-10-01)
+
+Requested by the Create addon engineer while moving the kinetic tunnel onto the API:
+- **`TunnelService.wallRemoved(level, pos, oldState)`:** an addon's wall block calls it from `onRemove`, so core repairs a tunnel wall removed by a command or another mod, as it does for its own walls. Core implements it with its shell repair.
+- **`TunnelKind.placedMessage(face, data)`:** the action-bar message after placing or a wrench move ("Rotation out to the machine's east side"); null keeps core's generic one.
+- **`CoreIds`:** `ROOM_WALL` (the block a tunnel item is used on, readable on the client) and `CREATIVE_TAB` (core's tab, for addons' items).
 
 ## Out of scope for A1
 

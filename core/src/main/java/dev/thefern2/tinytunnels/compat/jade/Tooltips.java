@@ -10,7 +10,6 @@ import java.util.Map;
 import org.jspecify.annotations.Nullable;
 
 import dev.thefern2.tinytunnels.room.TunnelMode;
-import dev.thefern2.tinytunnels.tunnel.KineticTunnelWallBlock;
 import dev.thefern2.tinytunnels.tunnel.RedstoneTunnelWallBlock;
 import dev.thefern2.tinytunnels.tunnel.TunnelWallBlock;
 import net.minecraft.core.Direction;
@@ -41,7 +40,7 @@ enum Tooltips implements IBlockComponentProvider {
     /**
      * One line per tunnel kind on the machine, in face order, with the face letters shown on the machine and each
      * tunnel's status: "Tunnel: D (Pass-through), U (Buffered in)", "Redstone Tunnel: N (In, signal 15)" and
-     * "Kinetic Tunnel: E (Out), 64 RPM, 128 SU". Names and status come from the kinds, through {@link ServerData}.
+     * one line per addon kind the same way. Names and status come from the kinds, through {@link ServerData}.
      */
     MACHINE(TinyTunnelsJadePlugin.MACHINE) {
         @Override
@@ -70,20 +69,8 @@ enum Tooltips implements IBlockComponentProvider {
             }
             names.forEach((kind, name) -> {
                 Component list = ComponentUtils.formatList(entries.get(kind), Component.literal(", "));
-                // Create's speed and stress for the kinetic tunnel; moves to the Create addon's own provider in A6.
-                if (kind.equals(KINETIC_KIND) && data.contains("kinetic_rpm")) list = Component.empty().append(list).append(", ").append(kineticDetails(data));
                 tooltip.add(Component.translatable("jade.tinytunnels.machine_tunnels", name, list));
             });
-        }
-    },
-    /** One line: "Links to the east side: out, 64 RPM, 128 SU". */
-    KINETIC_TUNNEL(TinyTunnelsJadePlugin.KINETIC_TUNNEL) {
-        @Override
-        public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
-            BlockState state = accessor.getBlockState();
-            Component side = faceName(state.getValue(KineticTunnelWallBlock.FACE));
-            String mode = state.getValue(KineticTunnelWallBlock.MODE).getSerializedName();
-            tooltip.add(Component.translatable("jade.tinytunnels.kinetic_tunnel", side, kineticDetails(mode, accessor.getServerData())));
         }
     },
     /** One line: "Links to the top side". */
@@ -131,22 +118,6 @@ enum Tooltips implements IBlockComponentProvider {
     @Override
     public ResourceLocation getUid() {
         return uid;
-    }
-
-    private static final String KINETIC_KIND = "tinytunnels:kinetic";
-
-    /** "out, 64 RPM, 128 SU", plus "overstressed"; just the start when the server sent no speed (no Create). */
-    private static Component kineticDetails(String start, CompoundTag data) {
-        if (!data.contains("kinetic_rpm")) return Component.literal(start);
-        return Component.literal(start + ", ").append(kineticDetails(data));
-    }
-
-    /** "64 RPM, 128 SU", plus "overstressed". */
-    private static Component kineticDetails(CompoundTag data) {
-        Component details = Component.literal(String.format(Locale.ROOT, "%.0f RPM, %.0f SU", Math.abs(data.getFloat("kinetic_rpm")), data.getFloat("kinetic_su")));
-        return data.getBoolean("kinetic_overstressed")
-                ? Component.empty().append(details).append(", ").append(Component.translatable("jade.tinytunnels.overstressed"))
-                : details;
     }
 
     private static @Nullable Component component(@Nullable Tag tag, RegistryOps<Tag> ops) {

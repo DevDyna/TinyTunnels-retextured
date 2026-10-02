@@ -68,7 +68,7 @@ public class MachineBlock extends Block implements EntityBlock {
         return faces(level, pos).has(face, MachineFaces.REDSTONE);
     }
 
-    /** The block state for these faces: {@code SIGNAL}. The Create kinetic machine adds its shaft face. */
+    /** The block state for these faces: {@code SIGNAL}. */
     protected BlockState faceState(BlockState state, MachineFaces faces) {
         return state.setValue(SIGNAL, !redstoneFaces(faces).isEmpty());
     }

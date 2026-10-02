@@ -1,7 +1,5 @@
 package dev.thefern2.tinytunnels.compat.jade;
 
-import dev.thefern2.tinytunnels.compat.Compat;
-import dev.thefern2.tinytunnels.compat.create.CreateBlocks;
 import dev.thefern2.tinytunnels.api.TunnelKinds;
 import dev.thefern2.tinytunnels.machine.MachineHost;
 import dev.thefern2.tinytunnels.registry.ModTunnelKinds;
@@ -47,7 +45,6 @@ enum ServerData implements IServerDataProvider<BlockAccessor> {
                 room.faces().forEach((face, tunnel) -> faces.add(face(face, tunnel, ops)));
                 data.put("faces", faces);
             });
-            if (Compat.CREATE) CreateBlocks.appendKineticData(accessor.getBlockEntity(), data);
         }
     },
     /** A buffered tunnel's contents, under {@code items} (list of stacks) and {@code fluid}. */
@@ -61,13 +58,6 @@ enum ServerData implements IServerDataProvider<BlockAccessor> {
             data.put("items", items);
             FluidStack fluid = tunnel.buffer().fluidContents();
             if (!fluid.isEmpty()) data.put("fluid", fluid.save(registries));
-        }
-    },
-    /** The kinetic tunnel wall's speed and the stress it passes on ({@code kinetic_rpm}, {@code kinetic_su}, {@code kinetic_overstressed}). */
-    KINETIC_TUNNEL(TinyTunnelsJadePlugin.KINETIC_TUNNEL) {
-        @Override
-        public void appendServerData(CompoundTag data, BlockAccessor accessor) {
-            if (Compat.CREATE) CreateBlocks.appendKineticData(accessor.getBlockEntity(), data);
         }
     },
     REDSTONE_TUNNEL(TinyTunnelsJadePlugin.REDSTONE_TUNNEL) {

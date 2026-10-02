@@ -13,8 +13,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 
 /**
- * A block entity that hosts a room: {@link MachineBlockEntity}, or a compat block entity that has to
- * extend another mod's class (e.g. a Create kinetic machine). Code outside the machine package checks
+ * A block entity that hosts a room. Today that's only {@link MachineBlockEntity}; the interface stays so a block
+ * entity that has to extend another class can host a room too. Code outside the machine package checks
  * {@code instanceof MachineHost}, never a concrete block entity class. The machine logic lives in
  * {@link MachineCore}; implementors forward their block entity hooks to it.
  */

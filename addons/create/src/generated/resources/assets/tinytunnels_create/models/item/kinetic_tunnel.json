@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "tinytunnels_create:item/kinetic_tunnel"
+  }
+}

@@ -3,7 +3,6 @@ package dev.thefern2.tinytunnels.tunnel;
 import java.util.UUID;
 
 import net.minecraft.core.Direction;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 
 /**
@@ -14,9 +13,6 @@ import net.minecraft.server.MinecraftServer;
  * @param <D> the kind's data
  */
 public interface CoreKind<D> {
-    /** What the player sees after placing a tunnel of this kind, or after the wrench moved it to {@code face}. */
-    Component placedMessage(Direction face, D data);
-
     /**
      * True if the kind's walls and the machine faces it's on answer capability lookups, so a change has pipes look
      * again ({@link CapabilityUpdates#roomChanged}). False only resyncs the machine's face looks.

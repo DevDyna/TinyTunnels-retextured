@@ -4,6 +4,8 @@ Written 2026-10-01, on branch `mc1.21.1/dev`. It replaces `1-21-1-testing-handof
 
 **If you're on the agent team, read `api-split-team.md` next.** It has the roles and the rules. Tasks are in `api-split-tasks.md`.
 
+**Since A6.1 (2026-10-01) there's also `addons/create/`** (mod `tinytunnels_create`, its own version). Its runs load core, the addon and Create: `./gradlew :addons:create:runGameTestServer` (GameTests of both, in `run/gametest-create`) and `./gradlew :addons:create:runClient`. Since A6.4, core's runs (`./gradlew :core:runGameTestServer`, `run/gametest`; `./gradlew :core:runClient`) have no Create at all; `-PnoCreate` is gone. `./gradlew runGameTestServer` runs both, core first, then the addon (not in parallel: under the load of two servers, the known "room frozen after a fast re-place" issue showed up in `kinetic_machine_replaced`). Add `--continue` to run the addon's even if core's fails.
+
 **Since A0 (2026-10-01), the mod's sources are under `core/`** (`core/src/...`, `core/build.gradle`). The paths below that start with a package folder are relative to `core/src/main/java/dev/thefern2/tinytunnels/`.
 
 Read these, in order:
@@ -54,7 +56,11 @@ Read these, in order:
 ```
 
 ```
-./gradlew runGameTestServer -PnoCreate
+./gradlew :core:runGameTestServer
+```
+
+```
+./gradlew :addons:create:runGameTestServer
 ```
 
 ```
@@ -88,7 +94,7 @@ Read these, in order:
   - `gametest/KineticGameTests` (Create only, 13 tests)
   - `gametest/KineticFallbackGameTests` (both runs, 3 tests)
   - `TinyTunnelsGameTests.Test` is package-private so the kinetic tests can add themselves
-- **`build.gradle`:** `-PnoCreate` leaves Create off the dev runtime.
+- **`build.gradle`:** (before A6.4) `-PnoCreate` left Create off the dev runtime. Since A6.4 Create is only in `addons/create`.
 
 ## Known issues (not blockers)
 
@@ -98,11 +104,7 @@ Read these, in order:
   - the GameTest server sometimes hangs on shutdown (1.21.1): kill it, the results are already in the log
   - the flaky `redstone_item_and_ports`
   - Jade's dev-only Pipez translation error
-- **Temporary debug code, still to remove:**
-  - `LinkedKineticBlockEntity.debugLink()`, and the extra failure detail in `KineticGameTests` (`machineInfo`, `kineticInfo`)
-  - the `[TT-DEBUG]` logs in `MachineCore` and `RoomTickets`
-  - `loading/ShutdownWatchdog`
-  - `/tinytunnels debug cap`
+- **Temporary debug code and dev-world bridges: removed 2026-10-02.** The `[TT-DEBUG]` logs, `ShutdownWatchdog`, `/tinytunnels debug cap`, the `kinetic_machine` alias and `Room.CODEC`'s old-format readers are gone. Worlds from before that need starting fresh.
 
 ## Working agreements (from the user)
 

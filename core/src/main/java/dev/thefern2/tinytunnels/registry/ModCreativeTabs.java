@@ -21,7 +21,6 @@ public final class ModCreativeTabs {
                 output.accept(ModItems.SHRINKER);
                 output.accept(ModItems.TUNNEL);
                 output.accept(ModItems.REDSTONE_TUNNEL);
-                if (ModItems.KINETIC_TUNNEL != null) output.accept(ModItems.KINETIC_TUNNEL);
                 output.accept(ModItems.TUNNEL_WRENCH);
             })
             .build());

@@ -4,13 +4,11 @@ import java.util.EnumMap;
 import java.util.Map;
 
 import dev.thefern2.tinytunnels.TinyTunnels;
-import dev.thefern2.tinytunnels.compat.Compat;
-import dev.thefern2.tinytunnels.compat.create.CreateBlocks;
 import dev.thefern2.tinytunnels.machine.MachineBlock;
 import dev.thefern2.tinytunnels.machine.MachineSize;
-import dev.thefern2.tinytunnels.tunnel.KineticTunnelWallBlock;
 import dev.thefern2.tinytunnels.tunnel.RedstoneTunnelWallBlock;
 import dev.thefern2.tinytunnels.tunnel.TunnelWallBlock;
+import dev.thefern2.tinytunnels.tunnel.UnknownTunnelWallBlock;
 import dev.thefern2.tinytunnels.wall.RoomWallBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
@@ -25,12 +23,11 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 public final class ModBlocks {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(TinyTunnels.MODID);
 
-    // With Create, each machine is a KineticMachineBlock under the same id, so it can carry a shaft.
     public static final Map<MachineSize, DeferredBlock<MachineBlock>> MACHINES = new EnumMap<>(MachineSize.class);
 
     static {
         for (MachineSize size : MachineSize.values()) {
-            MACHINES.put(size, BLOCKS.registerBlock(size.blockId(), p -> Compat.CREATE ? CreateBlocks.machine(size, p) : new MachineBlock(size, p), BlockBehaviour.Properties.of()
+            MACHINES.put(size, BLOCKS.registerBlock(size.blockId(), p -> new MachineBlock(size, p), BlockBehaviour.Properties.of()
                     .mapColor(MapColor.METAL)
                     .sound(SoundType.METAL)
                     // Blast-proof: losing the machine item would strand its room.
@@ -44,9 +41,9 @@ public final class ModBlocks {
     public static final DeferredBlock<RoomWallBlock> ROOM_WALL = BLOCKS.registerBlock("room_wall", RoomWallBlock::new, wallProperties());
     public static final DeferredBlock<TunnelWallBlock> TUNNEL_WALL = BLOCKS.registerBlock("tunnel_wall", TunnelWallBlock::new, wallProperties());
     public static final DeferredBlock<RedstoneTunnelWallBlock> REDSTONE_TUNNEL_WALL = BLOCKS.registerBlock("redstone_tunnel_wall", RedstoneTunnelWallBlock::new, wallProperties());
-    // Always registered, so removing Create leaves an inert wall instead of a hole; with Create it has a shaft.
-    public static final DeferredBlock<KineticTunnelWallBlock> KINETIC_TUNNEL_WALL = BLOCKS.registerBlock("kinetic_tunnel_wall",
-            p -> Compat.CREATE ? CreateBlocks.kineticTunnelWall(p) : new KineticTunnelWallBlock(p), wallProperties());
+
+    // The wall of a tunnel whose kind isn't registered (its mod was removed): inert, so the shell has no hole.
+    public static final DeferredBlock<UnknownTunnelWallBlock> UNKNOWN_TUNNEL_WALL = BLOCKS.registerBlock("unknown_tunnel_wall", UnknownTunnelWallBlock::new, wallProperties());
 
     private static BlockBehaviour.Properties wallProperties() {
         return BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_GRAY)

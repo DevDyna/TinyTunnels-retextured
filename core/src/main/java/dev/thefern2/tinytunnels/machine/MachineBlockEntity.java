@@ -9,7 +9,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.model.data.ModelData;
 
@@ -21,24 +20,7 @@ public class MachineBlockEntity extends BlockEntity implements MachineHost {
     private final MachineCore core = new MachineCore(this);
 
     public MachineBlockEntity(BlockPos pos, BlockState state) {
-        this(ModBlockEntities.MACHINE.get(), pos, state);
-    }
-
-    /** For {@link ModBlockEntities#KINETIC_MACHINE}'s fallback when Create isn't loaded. */
-    public MachineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
-        super(type, pos, state);
-    }
-
-    /**
-     * Always {@code machine}, the type {@link MachineBlock#newBlockEntity} makes, even when this was loaded from a
-     * save under {@code kinetic_machine} (a world saved with Create, opened without it). The client builds its
-     * block entity from the block, and drops the chunk's and every later update tag whose type doesn't match
-     * ({@code LevelChunk.replaceWithPacketData}, {@code ClientPacketListener.handleBlockEntityData}), so a
-     * mismatch loses the face looks. It's also saved under this id from then on.
-     */
-    @Override
-    public BlockEntityType<?> getType() {
-        return ModBlockEntities.MACHINE.get();
+        super(ModBlockEntities.MACHINE.get(), pos, state);
     }
 
     @Override

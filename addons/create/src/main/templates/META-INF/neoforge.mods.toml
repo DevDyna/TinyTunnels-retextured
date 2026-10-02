@@ -1,0 +1,39 @@
+modLoader="javafml"
+loaderVersion="${loader_version_range}"
+license="${mod_license}"
+
+[[mods]]
+modId="${create_addon_mod_id}"
+version="${create_addon_version}"
+displayName="${create_addon_mod_name}"
+description='''
+The kinetic tunnel for Tiny Tunnels: Create rotation through a machine, with a port block outside.
+'''
+
+[[dependencies.${create_addon_mod_id}]]
+    modId="${mod_id}"
+    type="required"
+    versionRange="${create_addon_core_range}"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${create_addon_mod_id}]]
+    modId="create"
+    type="required"
+    versionRange="${create_version_range}"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${create_addon_mod_id}]]
+    modId="neoforge"
+    type="required"
+    versionRange="${neo_version_range}"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.${create_addon_mod_id}]]
+    modId="minecraft"
+    type="required"
+    versionRange="${minecraft_version_range}"
+    ordering="NONE"
+    side="BOTH"

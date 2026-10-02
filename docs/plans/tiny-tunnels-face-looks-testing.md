@@ -149,6 +149,8 @@ Look at the machine from outside with Jade on. The state is: Pass-through tunnel
 
 ## 8. Without Create
 
+> **Since A6.4 (2026-10-01):** `-PnoCreate` no longer exists. Core has no Create code, and `./gradlew runClient` from core already runs without Create. Run this section with `./gradlew :core:runClient`; with the addon, `./gradlew :addons:create:runClient`. The kinetic tunnel tested here, `tinytunnels:kinetic`, is gone from core too; its entries now load as unknown kinds. See `tiny-tunnels-create-addon-testing.md`.
+
 24. Save and Quit, close the client, and start it without Create:
 
 ```
@@ -203,6 +205,8 @@ Steps 1–24 and 27–29 passed, except as noted. The world for step 24 on was s
 - **Rerun on the same world:** steps 25–27 need a rerun with `-PnoCreate` on the same world as before, to confirm the letters are back.
 - **Rerun after A3.12 (2026-10-01, `-PnoCreate`, same world):** the letters are back, and the kinetic tunnel wall is there. Steps 25–27 passed.
 - **To rerun after A3.12:** steps 25–27 with `-PnoCreate`. Step 27's "Kinetic Tunnel: E (Out)" line should be checked again too, given "k tunnels are gone".
+
+- **Recheck after A3.12–A3.14 (passed):** without Create, the letters and the kinetic wall are back (steps 25–27). Step 30: the up face is navy on the wall and the machine, and the yellow in/out marks are clearly visible. Redstone IN walls now have the same marks as transfer IN walls, lit and unlit (A3.14). **The A3 pass is complete.**
 
 ## Notes
 

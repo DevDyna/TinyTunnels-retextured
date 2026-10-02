@@ -14,6 +14,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Everything an addon asks core: find machines and rooms, change tunnels, and reach the block on the other side
@@ -84,6 +85,16 @@ public interface TunnelService {
      * @return false if there's no tunnel of {@code kind} on {@code face}
      */
     <D> boolean setData(RoomView room, Direction face, TunnelKind<D> kind, D data);
+
+    /**
+     * Call from your wall block's {@code onRemove} when the block is replaced by something else. Core puts a tunnel
+     * wall back if it was removed without going through this service (a command, another mod). Does nothing if the
+     * removal was core's own (a tunnel removal or a shell edit), or {@code pos} isn't a tunnel wall.
+     *
+     * @param level    the room dimension
+     * @param oldState the wall's state before the removal
+     */
+    void wallRemoved(ServerLevel level, BlockPos pos, BlockState oldState);
 
     // The other side, for capability addons
 

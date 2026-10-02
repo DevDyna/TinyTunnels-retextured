@@ -4,7 +4,7 @@ import dev.thefern2.tinytunnels.api.MachineView;
 import dev.thefern2.tinytunnels.api.RoomView;
 import net.neoforged.bus.api.Event;
 
-/** A machine was placed or is going. */
+/** A machine was placed or is going. Only for the room's current host, never a stale or duplicated machine. */
 public abstract class MachineEvent extends Event {
     private final MachineView machine;
     private final RoomView room;
@@ -29,7 +29,7 @@ public abstract class MachineEvent extends Event {
         }
     }
 
-    /** Before a machine goes (picked up or broken); the room still has its host. */
+    /** Before a machine goes (picked up or broken); the room still has its host. Not posted on chunk unload. */
     public static final class Removed extends MachineEvent {
         public Removed(MachineView machine, RoomView room) {
             super(machine, room);

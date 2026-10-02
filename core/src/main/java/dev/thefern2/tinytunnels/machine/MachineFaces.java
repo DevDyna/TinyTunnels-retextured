@@ -41,7 +41,6 @@ public record MachineFaces(Map<Direction, Face> faces) {
     // Core's kind ids and redstone looks, for client checks and GameTests (the registered kinds are the source).
     public static final ResourceLocation TRANSFER = id("transfer");
     public static final ResourceLocation REDSTONE = id("redstone");
-    public static final ResourceLocation KINETIC = id("kinetic");
 
     public static final FaceLook REDSTONE_LOOK = look("machine_port_redstone");
     public static final FaceLook REDSTONE_LIT_LOOK = look("machine_port_redstone_on");
@@ -56,6 +55,8 @@ public record MachineFaces(Map<Direction, Face> faces) {
     public static MachineFaces fromRoom(Room room) {
         Map<Direction, Face> faces = new EnumMap<>(Direction.class);
         room.faces().forEach((face, tunnel) -> faces.put(face, face(tunnel)));
+        // An unknown kind syncs its id with no look.
+        room.unknown().forEach((face, tunnel) -> faces.put(face, new Face(tunnel.kind(), null)));
         return faces.isEmpty() ? NONE : new MachineFaces(faces);
     }
 

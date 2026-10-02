@@ -1,5 +1,9 @@
 package dev.thefern2.tinytunnels.gametest;
 
+import java.util.Objects;
+
+import org.jspecify.annotations.Nullable;
+
 import dev.thefern2.tinytunnels.machine.MachineFaces;
 import dev.thefern2.tinytunnels.machine.MachineHost;
 import dev.thefern2.tinytunnels.machine.MachineSize;
@@ -54,6 +58,14 @@ final class TestRooms {
 
     static MachineFaces faces(GameTestHelper helper, BlockPos relative) {
         return faces(helper.getLevel(), helper.absolutePos(relative));
+    }
+
+    /**
+     * Null-safe {@code assertValueEqual}: that one throws a NullPointerException on a null actual, which hides the
+     * real failure. Says what was expected and what came.
+     */
+    static void assertEquals(GameTestHelper helper, @Nullable Object actual, @Nullable Object expected, String what) {
+        helper.assertTrue(Objects.equals(actual, expected), what + ": expected " + expected + ", got " + actual);
     }
 
     static ServerLevel rooms(GameTestHelper helper) {

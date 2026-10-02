@@ -3,7 +3,6 @@ package dev.thefern2.tinytunnels.command;
 import java.util.Arrays;
 import java.util.UUID;
 
-import org.jspecify.annotations.Nullable;
 
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -17,22 +16,16 @@ import dev.thefern2.tinytunnels.machine.MachineHost;
 import dev.thefern2.tinytunnels.machine.MachineSize;
 import dev.thefern2.tinytunnels.registry.ModDataComponents;
 import dev.thefern2.tinytunnels.registry.ModItems;
-import dev.thefern2.tinytunnels.registry.ModTunnelKinds;
 import dev.thefern2.tinytunnels.room.Room;
 import dev.thefern2.tinytunnels.room.RoomData;
 import dev.thefern2.tinytunnels.room.RoomBuilder;
 import dev.thefern2.tinytunnels.room.RoomDimension;
 import dev.thefern2.tinytunnels.room.RoomGeometry;
-import dev.thefern2.tinytunnels.room.RoomTunnel;
 import dev.thefern2.tinytunnels.teleport.RoomTeleporter;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.UuidArgument;
-import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
@@ -40,13 +33,9 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.material.Fluids;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 @EventBusSubscriber(modid = TinyTunnels.MODID)
 public final class TinyTunnelsCommand {
@@ -63,8 +52,6 @@ public final class TinyTunnelsCommand {
                         .then(Commands.literal("tickets").executes(TinyTunnelsCommand::debugTickets))
                         .then(Commands.literal("give")
                                 .then(Commands.argument("id", UuidArgument.uuid()).executes(TinyTunnelsCommand::debugGive)))
-                        .then(Commands.literal("cap")
-                                .then(Commands.argument("pos", BlockPosArgument.blockPos()).executes(TinyTunnelsCommand::debugCap)))
                         .then(Commands.literal("room")
                                 .then(Commands.argument("id", UuidArgument.uuid()).executes(TinyTunnelsCommand::debugRoom)))));
     }
@@ -100,67 +87,6 @@ public final class TinyTunnelsCommand {
         return rooms.size();
     }
 
-    // TODO(debug): temporary, for the 1.21.1 fluid-through-tunnel report. Walks the lookup a pipe does on each
-    // tunnel face of the machine at <pos> and prints where it stops.
-    private static int debugCap(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        CommandSourceStack source = context.getSource();
-        ServerLevel level = source.getLevel();
-        BlockPos pos = BlockPosArgument.getLoadedBlockPos(context, "pos");
-        if (!(level.getBlockEntity(pos) instanceof MachineHost machine)) {
-            source.sendFailure(Component.literal("No machine at " + pos.toShortString() + " in " + level.dimension().location()));
-            return 0;
-        }
-        Room room = machine.getRoom().orElse(null);
-        ServerLevel rooms = RoomDimension.getRoomLevel(source.getServer());
-        line(source, "machine " + pos.toShortString() + " room=" + machine.getRoomId() + " hosted=" + machine.hostedRoom().isPresent()
-                + " roomLevel=" + (rooms == null ? "null" : rooms.dimension().location()));
-        if (room == null || rooms == null) return 0;
-        for (Direction face : Direction.values()) {
-            RoomTunnel<?> entry = room.tunnel(face, ModTunnelKinds.TRANSFER.get());
-            if (entry == null) continue;
-            BlockPos tunnel = entry.wall();
-            Direction inward = room.geometry().inwardNormal(tunnel);
-            BlockPos inside = inward == null ? null : tunnel.relative(inward);
-            line(source, "face " + face.getSerializedName() + ": tunnel " + tunnel.toShortString() + " wall=" + rooms.getBlockState(tunnel).getBlock()
-                    + " inward=" + inward + " inside=" + (inside == null ? "null" : inside.toShortString() + " loaded=" + rooms.isLoaded(inside)
-                    + " block=" + rooms.getBlockState(inside).getBlock()));
-            // What a pipe outside sees (through our provider).
-            IFluidHandler fromFace = level.getCapability(Capabilities.FluidHandler.BLOCK, pos, face);
-            line(source, "  face fluid=" + fluidInfo(fromFace) + " item=" + name(level.getCapability(Capabilities.ItemHandler.BLOCK, pos, face))
-                    + " energy=" + name(level.getCapability(Capabilities.EnergyStorage.BLOCK, pos, face)));
-            // What the block inside exposes, asked directly.
-            if (inside != null && inward != null) {
-                line(source, "  inside fluid (direct)=" + fluidInfo(rooms.getCapability(Capabilities.FluidHandler.BLOCK, inside, inward.getOpposite())));
-            }
-            // What a pipe inside sees on the tunnel wall.
-            if (inward != null) {
-                line(source, "  wall fluid=" + fluidInfo(rooms.getCapability(Capabilities.FluidHandler.BLOCK, tunnel, inward)));
-            }
-        }
-        return 1;
-    }
-
-    private static String fluidInfo(@Nullable IFluidHandler handler) {
-        if (handler == null) return "null";
-        StringBuilder out = new StringBuilder(name(handler)).append(" tanks=").append(handler.getTanks());
-        for (int i = 0; i < handler.getTanks(); i++) {
-            FluidStack stack = handler.getFluidInTank(i);
-            out.append(" [").append(stack.isEmpty() ? "empty" : stack.getAmount() + " " + BuiltInRegistries.FLUID.getKey(stack.getFluid()))
-                    .append("/").append(handler.getTankCapacity(i)).append("]");
-        }
-        out.append(" simFill100=").append(handler.fill(new FluidStack(Fluids.WATER, 100), IFluidHandler.FluidAction.SIMULATE));
-        return out.toString();
-    }
-
-    private static String name(@Nullable Object handler) {
-        return handler == null ? "null" : handler.getClass().getSimpleName();
-    }
-
-    private static void line(CommandSourceStack source, String text) {
-        source.sendSuccess(() -> Component.literal(text), false);
-        TinyTunnels.LOGGER.info("[TT-DEBUG] cap {}", text);
-    }
-
     private static int debugRoom(CommandContext<CommandSourceStack> context) {
         CommandSourceStack source = context.getSource();
         UUID id = UuidArgument.getUuid(context, "id");
@@ -171,6 +97,8 @@ public final class TinyTunnelsCommand {
         }
         source.sendSuccess(() -> describe(room), false);
         room.view().tunnels().forEach((face, tunnel) -> source.sendSuccess(() -> describe(tunnel), false));
+        room.unknown().forEach((face, tunnel) -> source.sendSuccess(() -> Component.literal("  " + face.getSerializedName() + " " + tunnel.kind()
+                + " -> " + tunnel.wall().toShortString() + "  (unknown kind, kept as saved)"), false));
         return 1;
     }
 
@@ -210,7 +138,7 @@ public final class TinyTunnelsCommand {
         return 1;
     }
 
-    // TODO(debug): reports whether the host chunk is really loaded, to tell a missed unload from a chunk that stayed loaded.
+    /** Whether the host and room chunks are loaded, to tell a missed unload from a chunk that stayed loaded. */
     private static String loadState(CommandSourceStack source, Room room) {
         String hostState = room.host().map(host -> {
             ServerLevel hostLevel = source.getServer().getLevel(host.dimension());
@@ -245,7 +173,7 @@ public final class TinyTunnelsCommand {
                 .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/" + TinyTunnels.MODID + " debug give " + room.id()))
                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Click to get a machine bound to this room"))));
         return Component.empty().append(id).append("  #" + room.gridIndex() + "  " + room.size() + "x" + room.size()
-                + "  at " + geometry.min().toShortString() + "  host: " + host + "  tunnels: " + room.faces().size());
+                + "  at " + geometry.min().toShortString() + "  host: " + host + "  tunnels: " + (room.faces().size() + room.unknown().size()));
     }
 
     private TinyTunnelsCommand() {}

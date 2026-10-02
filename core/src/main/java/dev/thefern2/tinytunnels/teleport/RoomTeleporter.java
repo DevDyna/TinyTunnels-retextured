@@ -14,6 +14,7 @@ import dev.thefern2.tinytunnels.room.Room;
 import dev.thefern2.tinytunnels.room.RoomBuilder;
 import dev.thefern2.tinytunnels.room.RoomData;
 import dev.thefern2.tinytunnels.room.RoomDimension;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -23,6 +24,7 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -72,7 +74,13 @@ public final class RoomTeleporter {
         RoomEntry.rememberExit(player.serverLevel(), player.position(), player.getYRot(), player.getXRot());
         ReturnStack stack = player.getData(ModAttachments.RETURN_STACK);
         ReturnPoint point = stack.peek().orElse(null);
-        player.setData(ModAttachments.RETURN_STACK, stack.pop());
+        stack = stack.pop();
+        // A point inside a room that's since been deleted leads into empty space: go further back.
+        while (point != null && inDeletedRoom(server, point)) {
+            point = stack.peek().orElse(null);
+            stack = stack.pop();
+        }
+        player.setData(ModAttachments.RETURN_STACK, stack);
 
         ServerLevel target = point == null ? null : server.getLevel(point.dimension());
         if (point != null && target != null) {
@@ -84,6 +92,11 @@ public final class RoomTeleporter {
         ServerLevel overworld = server.overworld();
         teleport(player, overworld, overworld.getSharedSpawnPos().getBottomCenter(), overworld.getSharedSpawnAngle(), 0);
         player.displayClientMessage(Component.translatable("message.tinytunnels.exit.no_return"), true);
+    }
+
+    private static boolean inDeletedRoom(MinecraftServer server, ReturnPoint point) {
+        return point.dimension().equals(RoomDimension.key(server))
+                && RoomData.get(server).byChunk(new ChunkPos(BlockPos.containing(point.pos()))).isEmpty();
     }
 
     private static void teleportIn(ServerPlayer player, UUID roomId) {

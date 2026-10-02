@@ -2,9 +2,7 @@
 
 Added 2026-09-26.
 
-**Today:** debug-only code is marked `TODO(debug)`:
-- `[TT-DEBUG]` log lines in `MachineBlockEntity` and `RoomTickets` (ticket and occupancy changes)
-- the grey load-state line in `/tinytunnels debug tickets`
+**Today (2026-10-02):** the `[TT-DEBUG]` log lines, `ShutdownWatchdog` and `/tinytunnels debug cap` are removed. What's left is the grey load-state line in `/tinytunnels debug tickets` and the other `debug` subcommands.
 
 Regular players and server admins don't need it.
 

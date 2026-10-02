@@ -9,7 +9,6 @@ import dev.thefern2.tinytunnels.registry.ModBlocks;
 import dev.thefern2.tinytunnels.registry.ModItems;
 import dev.thefern2.tinytunnels.room.RedstoneMode;
 import dev.thefern2.tinytunnels.room.TunnelMode;
-import dev.thefern2.tinytunnels.tunnel.KineticTunnelWallBlock;
 import dev.thefern2.tinytunnels.tunnel.RedstoneTunnelWallBlock;
 import dev.thefern2.tinytunnels.tunnel.TunnelWallBlock;
 import net.minecraft.core.Direction;
@@ -28,7 +27,7 @@ public class ModModelProvider extends BlockStateProvider {
     @Override
     protected void registerStatesAndModels() {
         // Machines: the plain cube, as one unconditioned multipart part so it fits any block state properties
-        // (signal, and Create's kinetic face). The face letters are drawn by client/MachineFaceModel from the
+        // (signal, and any an addon adds). The face letters are drawn by client/MachineFaceModel from the
         // block entity's synced faces: textures block/machine_port_<look>_<face>.png.
         ModBlocks.MACHINES.values().forEach(holder -> {
             MachineBlock block = holder.get();
@@ -37,6 +36,8 @@ public class ModModelProvider extends BlockStateProvider {
             simpleBlockItem(block, base);
         });
         simpleBlock(ModBlocks.ROOM_WALL.get());
+        // A tunnel whose kind isn't registered: a grey port with "?", the same on every side (no face state).
+        simpleBlock(ModBlocks.UNKNOWN_TUNNEL_WALL.get());
 
         // One texture per mapped face (a letter on the port), so the mapping is visible, with yellow
         // marks for the buffered modes: notches for in, corners for out. The inward property doesn't
@@ -68,23 +69,9 @@ public class ModModelProvider extends BlockStateProvider {
                         state.getValue(RedstoneTunnelWallBlock.MODE), state.getValue(RedstoneTunnelWallBlock.POWERED))))
                 .build());
 
-        // Kinetic tunnels: a brass port with the face letter, per direction (corner marks on "out").
-        Map<String, ModelFile> kineticModels = new HashMap<>();
-        for (Direction face : Direction.values()) {
-            for (RedstoneMode mode : RedstoneMode.values()) {
-                String name = "kinetic_tunnel_wall" + redstoneSuffix(face, mode, false);
-                kineticModels.put(name, models().cubeAll(name, modLoc("block/" + name)));
-            }
-        }
-        getVariantBuilder(ModBlocks.KINETIC_TUNNEL_WALL.get()).forAllStates(state -> ConfiguredModel.builder()
-                .modelFile(kineticModels.get("kinetic_tunnel_wall" + redstoneSuffix(state.getValue(KineticTunnelWallBlock.FACE),
-                        state.getValue(KineticTunnelWallBlock.MODE), false)))
-                .build());
-
         itemModels().basicItem(ModItems.SHRINKER.get());
         itemModels().basicItem(ModItems.REDSTONE_TUNNEL.get());
         itemModels().basicItem(ModItems.TUNNEL.get());
-        if (ModItems.KINETIC_TUNNEL != null) itemModels().basicItem(ModItems.KINETIC_TUNNEL.get());
         itemModels().handheldItem(ModItems.TUNNEL_WRENCH.get());
     }
 

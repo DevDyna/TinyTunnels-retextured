@@ -1,0 +1,7 @@
+{
+  "parent": "tinytunnels_create:block/kinetic_port",
+  "textures": {
+    "front": "tinytunnels_create:block/machine_port_kinetic_west",
+    "particle": "tinytunnels_create:block/machine_port_kinetic_west"
+  }
+}

@@ -3,7 +3,6 @@ package dev.thefern2.tinytunnels.registry;
 import dev.thefern2.tinytunnels.TinyTunnels;
 import dev.thefern2.tinytunnels.api.TunnelKind;
 import dev.thefern2.tinytunnels.api.TunnelKinds;
-import dev.thefern2.tinytunnels.tunnel.KineticTunnelKind;
 import dev.thefern2.tinytunnels.tunnel.RedstoneTunnelKind;
 import dev.thefern2.tinytunnels.tunnel.TransferTunnelKind;
 import net.neoforged.bus.api.IEventBus;
@@ -18,8 +17,6 @@ public final class ModTunnelKinds {
     /** Items, fluids and energy. */
     public static final DeferredHolder<TunnelKind<?>, TransferTunnelKind> TRANSFER = KINDS.register("transfer", TransferTunnelKind::new);
     public static final DeferredHolder<TunnelKind<?>, RedstoneTunnelKind> REDSTONE = KINDS.register("redstone", RedstoneTunnelKind::new);
-    /** Temporary, Create-free: registered with or without Create. A6 moves it to the Create addon. */
-    public static final DeferredHolder<TunnelKind<?>, KineticTunnelKind> KINETIC = KINDS.register("kinetic", KineticTunnelKind::new);
 
     private ModTunnelKinds() {}
 

@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "tinytunnels_create:block/kinetic_tunnel_wall_up_in"
+  }
+}

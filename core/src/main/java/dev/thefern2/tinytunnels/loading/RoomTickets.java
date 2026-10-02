@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import dev.thefern2.tinytunnels.TinyTunnels;
+import dev.thefern2.tinytunnels.api.event.RoomEvent;
 import dev.thefern2.tinytunnels.machine.MachineHost;
 import dev.thefern2.tinytunnels.room.Room;
 import dev.thefern2.tinytunnels.room.RoomData;
@@ -20,6 +21,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.world.chunk.RegisterTicketControllersEvent;
 import net.neoforged.neoforge.common.world.chunk.TicketController;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -131,6 +133,17 @@ public final class RoomTickets {
         dirty = false;
     }
 
+    /**
+     * Lets go of a room that's being deleted, while it's still in {@link RoomData}: reconcile only finds a room's
+     * tickets through its data, so once the room is gone they would be held forever.
+     */
+    public static void release(MinecraftServer server, Room room) {
+        ServerLevel rooms = RoomDimension.getRoomLevel(server);
+        if (rooms != null && ACTIVE.remove(room.id())) force(rooms, room, false);
+        GlobalPos host = OCCUPIED.remove(room.id());
+        if (host != null) forceHost(server, room.id(), host, false);
+    }
+
     private static void reconcile(MinecraftServer server) {
         ServerLevel rooms = RoomDimension.getRoomLevel(server);
         if (rooms == null) return;
@@ -195,20 +208,15 @@ public final class RoomTickets {
     private static void forceHost(MinecraftServer server, UUID roomId, GlobalPos host, boolean add) {
         ServerLevel level = server.getLevel(host.dimension());
         if (level == null) return;
-        boolean changed = OCCUPANCY.forceChunk(level, roomId, host.pos().getX() >> 4, host.pos().getZ() >> 4, add, true);
-        // TODO(debug): remove once occupancy loading is verified in-game.
-        TinyTunnels.LOGGER.info("[TT-DEBUG] occupancy {} room={} host={} in {} forceChunk returned {}",
-                add ? "ADD" : "REMOVE", roomId.toString().substring(0, 8), host.pos().toShortString(), host.dimension().location(), changed);
+        OCCUPANCY.forceChunk(level, roomId, host.pos().getX() >> 4, host.pos().getZ() >> 4, add, true);
     }
 
     private static void force(ServerLevel rooms, Room room, boolean add) {
         ChunkPos chunk = room.geometry().chunk();
         int chunkX = chunk.getMinBlockX() >> 4;
         int chunkZ = chunk.getMinBlockZ() >> 4;
-        boolean changed = CONTROLLER.forceChunk(rooms, room.id(), chunkX, chunkZ, add, true);
-        // TODO(debug): remove once follow-the-host loading is verified in-game.
-        TinyTunnels.LOGGER.info("[TT-DEBUG] ticket {} room={} chunk={},{} forceChunk returned {}",
-                add ? "ADD" : "REMOVE", room.id().toString().substring(0, 8), chunkX, chunkZ, changed);
+        CONTROLLER.forceChunk(rooms, room.id(), chunkX, chunkZ, add, true);
+        NeoForge.EVENT_BUS.post(add ? new RoomEvent.StartedTicking(rooms, room.view()) : new RoomEvent.StoppedTicking(rooms, room.view()));
     }
 
     private RoomTickets() {}

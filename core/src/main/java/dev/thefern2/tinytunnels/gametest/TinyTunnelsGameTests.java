@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import dev.thefern2.tinytunnels.TinyTunnels;
-import dev.thefern2.tinytunnels.compat.Compat;
 import net.minecraft.gametest.framework.GameTestGenerator;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.TestFunction;
@@ -71,26 +70,52 @@ public final class TinyTunnelsGameTests {
         TESTS.put("buffered_simulate", new Test(BufferedTunnelGameTests::simulateChangesNothing, 100));
         TESTS.put("buffered_repair", new Test(BufferedTunnelGameTests::repairKeepsBuffer, 100));
         TESTS.put("buffered_bucket", new Test(BufferedTunnelGameTests::bucket, 100));
-        TESTS.put("kinetic_id_keeps_room", new Test(KineticFallbackGameTests::kineticIdKeepsRoom, 100));
-        TESTS.put("machine_id_keeps_room", new Test(KineticFallbackGameTests::plainIdKeepsRoom, 100));
-        TESTS.put("kinetic_shell_repair", new Test(KineticFallbackGameTests::shellRepairKeepsKinetic, 100));
-        // A3.7: the plain machine has only the signal state (2 per size). Without Create only: the kinetic machine adds kinetic_face.
-        if (!Compat.CREATE) TESTS.put("machine_two_states", new Test(MachineStateGameTests::twoStatesPerSize, 20));
+        TESTS.put("machine_id_keeps_room", new Test(MachineStateGameTests::savedMachineKeepsRoom, 100));
+        // A3.7: the machine has only the signal state (2 per size).
+        TESTS.put("machine_two_states", new Test(MachineStateGameTests::twoStatesPerSize, 20));
+        // Machine management M2: the wrench picks a machine up with its room, in creative too.
+        TESTS.put("wrench_creative_pick_up", new Test(MachineWrenchGameTests::creativePickUp, 20));
+        TESTS.put("creative_break_without_wrench", new Test(MachineWrenchGameTests::creativeBreakWithoutWrench, 20));
+        // Machine management M3: sneak + wrench twice deletes a room.
+        TESTS.put("delete_keeps_contents", new Test(MachineWrenchGameTests::deleteKeepsContents, 100));
+        TESTS.put("delete_destroys_contents", new Test(MachineWrenchGameTests::deleteDestroysContents, 100));
+        // Machine management M5: right-click with the wrench turns a machine.
+        TESTS.put("wrench_turn", new Test(MachineWrenchGameTests::turn, 100));
+        // Room duplicator D0: sneak + right-click a machine with an empty machine copies its room.
+        TESTS.put("copy_survival", new Test(RoomCopyGameTests::survival, 20));
+        TESTS.put("copy_missing", new Test(RoomCopyGameTests::missing, 20));
+        TESTS.put("copy_spawner_refused", new Test(RoomCopyGameTests::spawnerRefused, 20));
+        TESTS.put("copy_creative", new Test(RoomCopyGameTests::creative, 20));
+        TESTS.put("copy_different_size", new Test(RoomCopyGameTests::differentSize, 20));
+        // A4.2: the API events (machine, room, tunnel).
+        TESTS.put("api_events", new Test(EventGameTests::events, 400));
+        // A5.4: unknown kinds, with the GameTest-only test kind.
+        TESTS.put("unknown_kind_kept", new Test(UnknownKindGameTests::kept, 100));
+        TESTS.put("unknown_kind_returns", new Test(UnknownKindGameTests::returns, 100));
+        TESTS.put("unknown_kind_placement", new Test(UnknownKindGameTests::placementRefused, 100));
+        // A6.5: a world saved with the Create addon's kinetic tunnel, opened with only core.
+        TESTS.put("unknown_kind_create_entry", new Test(UnknownKindGameTests::createEntry, 100));
+        // A6.9: a room chunk loading with walls as air repairs them.
+        TESTS.put("unknown_kind_chunk_load_repair", new Test(UnknownKindGameTests::chunkLoadRepairs, 100));
         // QA.1 (A2.5): TunnelService.get() finds core's implementation.
         TESTS.put("api_service_found", new Test(ApiGameTests::serviceFound, 20));
-        if (Compat.CREATE) TESTS.putAll(KineticGameTests.tests());
     }
 
     public static void register(IEventBus modEventBus) {
         if (!GameTestHooks.isGametestEnabled()) return;
         modEventBus.addListener((RegisterGameTestsEvent event) -> event.register(TinyTunnelsGameTests.class));
+        EventGameTests.listen();
+        TestTunnelKind.register(modEventBus);
     }
 
     /** One test per entry, named {@code tinytunnels.<name>}, all in the empty 5x5x5 structure. */
     @GameTestGenerator
     public static Collection<TestFunction> tests() {
         String structure = TinyTunnels.id("empty_5x5x5").toString();
+        // -PonlyTest=<name> (system property tinytunnels.onlyTest): just that test, for repeating a flaky one.
+        String only = System.getProperty("tinytunnels.onlyTest");
         return TESTS.entrySet().stream()
+                .filter(entry -> only == null || only.isBlank() || entry.getKey().equals(only))
                 .map(entry -> new TestFunction(TinyTunnels.MODID, TinyTunnels.MODID + "." + entry.getKey(), structure,
                         entry.getValue().maxTicks(), 0, true, entry.getValue().function()))
                 .toList();

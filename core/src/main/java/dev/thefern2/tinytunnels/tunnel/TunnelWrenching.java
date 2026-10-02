@@ -10,6 +10,7 @@ import dev.thefern2.tinytunnels.wall.ShellProtection;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -31,7 +32,8 @@ import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 @EventBusSubscriber(modid = TinyTunnels.MODID)
 public final class TunnelWrenching {
     // HIGHEST: Create's WrenchEventHandler takes any c:tools/wrench click on its rotatable blocks at HIGH and
-    // cancels it, and the kinetic tunnel wall is one of them. Create skips an already cancelled event.
+    // cancels it, and an addon's tunnel wall can be one of them (the Create addon's is). Create skips an already
+    // cancelled event.
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
         if (!event.getItemStack().is(Tags.Items.TOOLS_WRENCH)) return;
@@ -41,15 +43,26 @@ public final class TunnelWrenching {
         event.setCancellationResult(InteractionResult.SUCCESS);
         if (event.getLevel() instanceof ServerLevel rooms) {
             Room room = TunnelChanges.roomAt(rooms, event.getPos());
+            Player player = event.getEntity();
+            Direction unknown = room == null ? null : room.unknownFaceAt(event.getPos());
+            if (unknown != null) {
+                player.displayClientMessage(unknownMessage(room.unknownKind(unknown)), true);
+                return;
+            }
             Direction face = room == null ? null : room.faceAt(event.getPos());
             if (face == null) return;
-            Player player = event.getEntity();
             if (player.isSecondaryUseActive()) {
                 remove(rooms, room, room.view(face), player);
             } else {
                 move(rooms, room, face, player);
             }
         }
+    }
+
+    /** A tunnel of a kind that isn't registered can't be moved or removed: it waits for its mod to come back. */
+    static Component unknownMessage(ResourceLocation kind) {
+        return Component.translatableWithFallback("message.tinytunnels.tunnel.unknown_kind",
+                "Unknown tunnel (%s): its mod isn't loaded, so it can't be moved or removed", kind.toString());
     }
 
     private static void move(ServerLevel rooms, Room room, Direction face, Player player) {

@@ -6,7 +6,8 @@ import net.neoforged.bus.api.Event;
 
 /**
  * A room started or stopped ticking. A room ticks exactly while its machine ticks: core adds the room chunk's
- * ticket when the machine starts ticking, and drops it when the machine stops.
+ * ticket when the machine starts ticking, and drops it when the machine stops. Posted when core reconciles its
+ * tickets, which is the tick after a machine is placed or picked up, not during that call.
  */
 public abstract class RoomEvent extends Event {
     private final ServerLevel level;

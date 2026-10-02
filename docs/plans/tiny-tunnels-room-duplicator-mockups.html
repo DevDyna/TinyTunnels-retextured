@@ -1,0 +1,329 @@
+<title>Room Duplicator Mockups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&family=Pixelify+Sans:wght@400;600&display=swap">
+<style>
+  :root {
+    --page: #eceee8;
+    --ink: #1f2421;
+    --muted: #5d655f;
+    --rule: #c9cec6;
+    --card: #f7f8f4;
+    /* Minecraft-style GUI, kept the same in both themes: it's the game's look */
+    --gui: #c6c6c6;
+    --gui-hi: #ffffff;
+    --gui-lo: #555555;
+    --slot: #8b8b8b;
+    --slot-lo: #373737;
+    --gui-ink: #3f3f3f;
+    --have: #2f7a32;
+    --miss: #b3261e;
+    --tip-bg: #1a0f2b;
+    --tip-edge: #4b1f8f;
+    --accent: #6b4fb3;
+    --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    --sans: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+    --pixel: "Pixelify Sans", "IBM Plex Mono", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page: #171a18;
+      --ink: #e6e9e3;
+      --muted: #a2aaa3;
+      --rule: #333a35;
+      --card: #1f2321;
+      --accent: #a58ef0;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page: #171a18;
+    --ink: #e6e9e3;
+    --muted: #a2aaa3;
+    --rule: #333a35;
+    --card: #1f2321;
+    --accent: #a58ef0;
+  }
+  body {
+    background: var(--page);
+    color: var(--ink);
+    font: 15px/1.55 var(--sans);
+    padding-inline: 16px;
+    padding-block: 32px 64px;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; display: grid; gap: 40px; }
+  header h1 { font: 600 30px/1.15 var(--pixel); margin: 0 0 8px; text-wrap: balance; }
+  header p { margin: 0; max-width: 68ch; color: var(--muted); }
+  .eyebrow { font: 600 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+  h2 { font: 600 22px/1.2 var(--pixel); margin: 6px 0 4px; }
+  .lede { margin: 0 0 16px; color: var(--muted); max-width: 68ch; }
+
+  section.option { border-top: 1px solid var(--rule); padding-top: 24px; }
+  .row { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+  @media (max-width: 760px) { .row { grid-template-columns: 1fr; } }
+
+  /* The game GUI */
+  .stage { background: #6f8f5a; background-image: linear-gradient(135deg, #7a9b63 25%, transparent 25%, transparent 50%, #7a9b63 50%, #7a9b63 75%, transparent 75%); background-size: 24px 24px; padding: 18px; overflow-x: auto; }
+  .gui {
+    background: var(--gui); color: var(--gui-ink); font-family: var(--pixel);
+    border: 3px solid; border-color: var(--gui-hi) var(--gui-lo) var(--gui-lo) var(--gui-hi);
+    padding: 12px; width: max-content; max-width: 100%; margin: 0 auto;
+  }
+  .gui-title { font-size: 15px; margin: 0 0 8px; }
+  .slot {
+    width: 40px; height: 40px; background: var(--slot);
+    border: 2px solid; border-color: var(--slot-lo) var(--gui-hi) var(--gui-hi) var(--slot-lo);
+    display: grid; place-items: center; font: 600 10px/1 var(--pixel); color: #fff; text-shadow: 1px 1px 0 #000;
+    position: relative; flex: none;
+  }
+  .slot .count { position: absolute; right: 2px; bottom: 1px; font-size: 11px; }
+  .ico { width: 26px; height: 26px; border: 2px solid rgba(0,0,0,.35); }
+  .ico.bp { background: #3e6fb8; background-image: linear-gradient(#ffffff55 1px, transparent 1px), linear-gradient(90deg, #ffffff55 1px, transparent 1px); background-size: 6px 6px; }
+  .ico.machine { background: #2b2b2b; box-shadow: inset 0 0 0 4px #d8b23a; }
+  .ico.plank { background: #b8935a; background-image: repeating-linear-gradient(0deg, transparent 0 5px, #8a6a3a 5px 6px); }
+  .ico.glass { background: #c8e6f0; box-shadow: inset 0 0 0 2px #e9f7fb; }
+  .ico.stone { background: #8d8d8d; background-image: radial-gradient(#6f6f6f 20%, transparent 21%); background-size: 7px 7px; }
+  .ico.lamp { background: #c9a34a; box-shadow: inset 0 0 0 5px #6b4b1f; }
+  .ico.tunnel { background: #2b2b2b; box-shadow: inset 0 0 0 4px #3a8ad6; }
+  .ico.chest { background: #9c6b2f; box-shadow: inset 0 -12px 0 #7a4f1d; }
+  .ico.paper { background: #f1efe6; }
+  .ico.wrench { background: linear-gradient(45deg, transparent 40%, #9aa3ab 40%, #9aa3ab 60%, transparent 60%); border: none; }
+
+  .dup { display: grid; grid-template-columns: auto auto auto; gap: 12px; align-items: start; }
+  .inputs { display: grid; gap: 6px; justify-items: center; }
+  .lbl { font-size: 11px; color: #555; }
+  .checklist { background: #8f8f8f; border: 2px solid; border-color: var(--slot-lo) var(--gui-hi) var(--gui-hi) var(--slot-lo); padding: 6px; width: 290px; max-width: 100%; }
+  .checklist table { width: 100%; border-collapse: collapse; font: 13px/1.25 var(--pixel); color: #fff; text-shadow: 1px 1px 0 #000; }
+  .checklist th { text-align: left; font-weight: 400; color: #e0e0e0; padding: 2px 4px; }
+  .checklist td { padding: 3px 4px; font-variant-numeric: tabular-nums; }
+  .checklist td.n { text-align: right; }
+  .checklist tr.miss td.n.have { color: #ff8a80; }
+  .checklist tr.ok td.n.have { color: #9ef59e; }
+  .item { display: flex; align-items: center; gap: 6px; }
+  .item .ico { width: 14px; height: 14px; border-width: 1px; }
+  .btn {
+    margin-top: 8px; width: 100%; font: 600 14px var(--pixel); padding: 6px; color: #9a9a9a;
+    background: #6f6f6f; border: 2px solid; border-color: #9a9a9a #3a3a3a #3a3a3a #9a9a9a; cursor: not-allowed;
+  }
+  .out { display: grid; gap: 6px; justify-items: center; }
+  .arrow { font: 600 22px var(--pixel); color: #555; margin-top: 18px; }
+  .inv { display: grid; grid-template-columns: repeat(9, 40px); gap: 0; margin-top: 12px; }
+  .inv .slot { width: 40px; height: 40px; }
+
+  /* World view for B and C */
+  .world { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: end; justify-items: center; color: #fff; font-family: var(--pixel); text-shadow: 1px 1px 0 #000; }
+  .block3d { width: 74px; height: 74px; position: relative; }
+  .block3d .face { position: absolute; inset: 10px 0 0 10px; border: 3px solid #1b1b1b; }
+  .block3d .top { position: absolute; inset: 0 10px 64px 0; transform: skewX(-45deg); transform-origin: bottom left; border: 3px solid #1b1b1b; height: 10px; left: 10px; width: 61px; }
+  .b-dup .face { background: #4d5a63; box-shadow: inset 0 0 0 8px #2e353a; }
+  .b-dup .top { background: #6b7a84; }
+  .b-chest .face { background: #9c6b2f; box-shadow: inset 0 -26px 0 #7a4f1d; }
+  .b-chest .top { background: #b9853f; }
+  .tooltip {
+    background: var(--tip-bg); border: 2px solid var(--tip-edge); color: #fff; font: 13px/1.35 var(--pixel);
+    padding: 7px 9px; text-shadow: 1px 1px 0 #000; max-width: 280px;
+  }
+  .tooltip .t { color: #fff; }
+  .tooltip .g { color: #aaaaaa; }
+  .tooltip .r { color: #ff6b6b; }
+  .tooltip .ok { color: #7cf07c; }
+  .chat { margin-top: 10px; background: rgba(0,0,0,.55); color: #fff; font: 13px/1.4 var(--pixel); padding: 6px 8px; text-shadow: 1px 1px 0 #000; max-width: 420px; }
+  .chat .r { color: #ff6b6b; }
+  .hotbar { display: flex; gap: 0; margin: 12px auto 0; width: max-content; max-width: 100%; }
+  .hotbar .slot.sel { border-color: #fff; outline: 2px solid #fff; z-index: 1; }
+
+  /* Notes column */
+  .notes { display: grid; gap: 12px; }
+  .notes h3 { margin: 0; font: 600 13px/1.2 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .notes ul { margin: 4px 0 0; padding-left: 18px; }
+  .notes li { margin: 3px 0; }
+  .effort { display: inline-flex; align-items: center; gap: 8px; font: 600 13px var(--mono); }
+  .pips { display: inline-flex; gap: 3px; }
+  .pips i { width: 14px; height: 8px; background: var(--rule); display: block; }
+  .pips i.on { background: var(--accent); }
+  .flow { counter-reset: s; list-style: none; padding: 0; margin: 4px 0 0; }
+  .flow li { counter-increment: s; position: relative; padding-left: 26px; margin: 4px 0; }
+  .flow li::before { content: counter(s); position: absolute; left: 0; top: 1px; width: 18px; height: 18px; display: grid; place-items: center; font: 600 11px var(--mono); background: var(--card); border: 1px solid var(--rule); }
+
+  .compare-wrap { overflow-x: auto; }
+  table.compare { border-collapse: collapse; width: 100%; min-width: 620px; background: var(--card); }
+  table.compare th, table.compare td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  table.compare thead th { font: 600 12px/1.2 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  table.compare tbody th { font-weight: 600; white-space: nowrap; }
+  .shared { background: var(--card); border: 1px solid var(--rule); padding: 14px 16px; }
+  .shared p { margin: 0 0 8px; }
+  .shared p:last-child { margin: 0; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Tiny Tunnels · M4 · lo-fi</div>
+    <h1>Room Duplicator Mockups</h1>
+    <p>Three ways to pay for and build a copy of a room in survival. All three start from a Room Blueprint of the room. The example is a Normal Machine (7×7×7 inside) that needs 214 more blocks than you have. Design notes: <code>tiny-tunnels-room-duplicator.md</code>.</p>
+  </header>
+
+  <div class="shared">
+    <p><strong>Shared by all three: the Room Blueprint.</strong> Wrench a machine while holding paper in the other hand. You get a blueprint of the room as it is now; the room isn't touched.</p>
+    <p>Its tooltip in every option:</p>
+    <div class="tooltip" style="display:inline-block">
+      <div class="t">Room Blueprint</div>
+      <div class="g">Normal Machine (7×7×7)</div>
+      <div class="g">412 blocks · 2 tunnels</div>
+      <div class="g">Copied 2026-10-02</div>
+    </div>
+  </div>
+
+  <!-- A -->
+  <section class="option" id="a">
+    <div class="eyebrow">Option A</div>
+    <h2>Duplicator block with a checklist screen</h2>
+    <p class="lede">A new block. Its screen lists every item the copy needs, with what you have and what's missing. It fills from items you put in and from chests, hoppers, pipes or tunnels next to it.</p>
+    <div class="row">
+      <div class="stage">
+        <div class="gui">
+          <div class="gui-title">Room Duplicator</div>
+          <div class="dup">
+            <div class="inputs">
+              <span class="lbl">Blueprint</span>
+              <div class="slot"><span class="ico bp"></span></div>
+              <span class="lbl">Empty machine</span>
+              <div class="slot"><span class="ico machine"></span></div>
+            </div>
+            <div class="checklist">
+              <table>
+                <thead><tr><th>Item</th><th style="text-align:right">Have</th><th style="text-align:right">Need</th></tr></thead>
+                <tbody>
+                  <tr class="miss"><td><span class="item"><span class="ico plank"></span>Oak Planks</span></td><td class="n have">26</td><td class="n">240</td></tr>
+                  <tr class="ok"><td><span class="item"><span class="ico stone"></span>Stone Bricks</span></td><td class="n have">96</td><td class="n">96</td></tr>
+                  <tr class="miss"><td><span class="item"><span class="ico glass"></span>Glass</span></td><td class="n have">40</td><td class="n">48</td></tr>
+                  <tr class="ok"><td><span class="item"><span class="ico chest"></span>Chest</span></td><td class="n have">6</td><td class="n">6</td></tr>
+                  <tr class="ok"><td><span class="item"><span class="ico lamp"></span>Redstone Lamp</span></td><td class="n have">4</td><td class="n">4</td></tr>
+                  <tr class="miss"><td><span class="item"><span class="ico tunnel"></span>Tunnel</span></td><td class="n have">0</td><td class="n">2</td></tr>
+                </tbody>
+              </table>
+              <button class="btn" type="button" disabled>Build (222 missing)</button>
+            </div>
+            <div class="out">
+              <span class="arrow">→</span>
+              <span class="lbl">Copy</span>
+              <div class="slot"></div>
+            </div>
+          </div>
+          <div class="inv">
+            <div class="slot"><span class="ico plank"></span><span class="count">26</span></div><div class="slot"><span class="ico glass"></span><span class="count">40</span></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div>
+          </div>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="effort">Effort <span class="pips"><i class="on"></i><i class="on"></i><i class="on"></i></span> large</div>
+        <div><h3>Flow</h3>
+          <ol class="flow">
+            <li>Craft and place the Duplicator, with a chest next to it.</li>
+            <li>Put in the blueprint and an empty machine of the same size.</li>
+            <li>Fill the chest; the list turns green as items arrive.</li>
+            <li>Press Build; the bound machine appears in the output slot.</li>
+          </ol>
+        </div>
+        <div><h3>For</h3><ul><li>The list is always in front of you, sorted by what's missing.</li><li>Works with automation: pipes and tunnels can feed it.</li></ul></div>
+        <div><h3>Against</h3><ul><li>Most work: a block, a screen, a menu, syncing the list.</li><li>One more block to craft.</li></ul></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- B -->
+  <section class="option" id="b">
+    <div class="eyebrow">Option B</div>
+    <h2>Duplicator block, no screen</h2>
+    <p class="lede">The same block without a screen. Right-click it to load the blueprint and machine; it pulls from chests next to it. What's missing shows in Jade and in chat. It builds by itself when complete.</p>
+    <div class="row">
+      <div class="stage">
+        <div class="world">
+          <div style="display:grid;gap:6px;justify-items:center"><div class="block3d b-chest"><div class="top"></div><div class="face"></div></div><span>Chest</span></div>
+          <div style="display:grid;gap:6px;justify-items:center"><div class="block3d b-dup"><div class="top"></div><div class="face"></div></div><span>Duplicator</span></div>
+          <div class="tooltip">
+            <div class="t">Room Duplicator</div>
+            <div class="g">Copying: Normal Machine</div>
+            <div class="r">Missing 222 items:</div>
+            <div class="r">214 Oak Planks</div>
+            <div class="r">8 Glass</div>
+            <div class="r">2 Tunnel</div>
+          </div>
+        </div>
+        <div class="chat">[Room Duplicator] Missing: <span class="r">214 Oak Planks, 8 Glass, 2 Tunnel</span>. Put them in the chest next to it.</div>
+      </div>
+      <div class="notes">
+        <div class="effort">Effort <span class="pips"><i class="on"></i><i class="on"></i><i></i></span> medium</div>
+        <div><h3>Flow</h3>
+          <ol class="flow">
+            <li>Place the Duplicator next to a chest.</li>
+            <li>Right-click it with the blueprint, then with an empty machine.</li>
+            <li>Look at it (Jade) or right-click it to see what's missing.</li>
+            <li>When the chest has everything, it builds and drops the bound machine.</li>
+          </ol>
+        </div>
+        <div><h3>For</h3><ul><li>Much less work than A; still automatic.</li></ul></div>
+        <div><h3>Against</h3><ul><li>A long missing list is hard to read in a tooltip or chat.</li><li>No place to see the full list at once.</li></ul></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- C -->
+  <section class="option" id="c">
+    <div class="eyebrow">Option C</div>
+    <h2>No new block: the wrench and your inventory</h2>
+    <p class="lede">Wrench an empty machine with the blueprint in your other hand. If your inventory has everything, it's taken and the machine is bound to the copy. If not, the blueprint's tooltip and a chat message say what's missing.</p>
+    <div class="row">
+      <div class="stage">
+        <div class="tooltip" style="margin:0 auto">
+          <div class="t">Room Blueprint</div>
+          <div class="g">Normal Machine (7×7×7)</div>
+          <div class="g">Needs, from your inventory:</div>
+          <div class="r">Oak Planks 26 / 240</div>
+          <div class="ok">Stone Bricks 96 / 96</div>
+          <div class="r">Glass 40 / 48</div>
+          <div class="ok">Chest 6 / 6</div>
+          <div class="ok">Redstone Lamp 4 / 4</div>
+          <div class="r">Tunnel 0 / 2</div>
+        </div>
+        <div class="hotbar">
+          <div class="slot sel"><span class="ico wrench"></span></div><div class="slot"><span class="ico machine"></span></div><div class="slot"><span class="ico plank"></span><span class="count">26</span></div><div class="slot"><span class="ico glass"></span><span class="count">40</span></div><div class="slot"><span class="ico stone"></span><span class="count">64</span></div><div class="slot"><span class="ico stone"></span><span class="count">32</span></div><div class="slot"></div><div class="slot"></div><div class="slot"><span class="ico bp"></span></div>
+        </div>
+        <div class="chat">Can't copy yet. Missing: <span class="r">214 Oak Planks, 8 Glass, 2 Tunnel</span>.</div>
+      </div>
+      <div class="notes">
+        <div class="effort">Effort <span class="pips"><i class="on"></i><i></i><i></i></span> small</div>
+        <div><h3>Flow</h3>
+          <ol class="flow">
+            <li>Hold the blueprint in your off hand, the wrench in your main hand.</li>
+            <li>Hover the blueprint to see have / need from your inventory.</li>
+            <li>Gather what's missing.</li>
+            <li>Wrench an empty machine: the items are taken and it's bound to the copy.</li>
+          </ol>
+        </div>
+        <div><h3>For</h3><ul><li>Least work; nothing new to craft.</li></ul></div>
+        <div><h3>Against</h3><ul><li>Big rooms need far more than an inventory holds (a Maximum Machine is 13×13×13).</li><li>No automation.</li></ul></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Side by side</div>
+    <h2>Compare</h2>
+    <div class="compare-wrap">
+      <table class="compare">
+        <thead><tr><th></th><th>A · Screen</th><th>B · No screen</th><th>C · Wrench</th></tr></thead>
+        <tbody>
+          <tr><th>New block</th><td>Yes</td><td>Yes</td><td>No</td></tr>
+          <tr><th>See the full list</th><td>Screen, always</td><td>Jade and chat, abbreviated</td><td>Blueprint tooltip</td></tr>
+          <tr><th>Where items come from</th><td>Slots and nearby containers</td><td>Nearby containers</td><td>Your inventory</td></tr>
+          <tr><th>Automation</th><td>Yes</td><td>Yes</td><td>No</td></tr>
+          <tr><th>Big rooms</th><td>Fine</td><td>Fine</td><td>Hard (inventory size)</td></tr>
+          <tr><th>Effort</th><td>Large</td><td>Medium</td><td>Small</td></tr>
+          <tr><th>Could stage</th><td colspan="3">Ship C first, add A later; both use the same blueprint and the same item list.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

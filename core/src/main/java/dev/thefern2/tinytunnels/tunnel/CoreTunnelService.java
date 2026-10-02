@@ -20,6 +20,7 @@ import dev.thefern2.tinytunnels.room.Room;
 import dev.thefern2.tinytunnels.room.RoomData;
 import dev.thefern2.tinytunnels.room.RoomDimension;
 import dev.thefern2.tinytunnels.room.RoomTunnel;
+import dev.thefern2.tinytunnels.wall.ShellProtection;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
@@ -28,6 +29,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 /**
@@ -117,6 +119,11 @@ public final class CoreTunnelService implements TunnelService {
         if (hostLevel == null) return Optional.empty();
         BlockPos outside = host.pos().relative(face);
         return hostLevel.isLoaded(outside) ? Optional.of(new Endpoint(hostLevel, outside, face.getOpposite())) : Optional.empty();
+    }
+
+    @Override
+    public void wallRemoved(ServerLevel level, BlockPos pos, BlockState oldState) {
+        ShellProtection.onShellRemoved(level, pos, oldState);
     }
 
     @Override

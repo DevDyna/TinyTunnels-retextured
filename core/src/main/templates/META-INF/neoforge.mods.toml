@@ -83,13 +83,6 @@ Compact rooms inside a block, with working item, fluid and energy tunnels.
     ordering="NONE"
     side="BOTH"
 
-# Create is optional (the kinetic tunnel). The range only stops an older, untested Create from loading alongside.
-[[dependencies.${mod_id}]]
-    modId="create"
-    type="optional"
-    versionRange="[6.0.8,)"
-    ordering="NONE"
-    side="BOTH"
 
 # Features are specific properties of the game environment, that you may want to declare you require. This example declares
 # that your mod requires GL version 3.2 or higher. Other features will be added. They are side aware so declaring this won't

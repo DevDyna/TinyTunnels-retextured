@@ -5,7 +5,7 @@ import java.util.UUID;
 
 import org.jspecify.annotations.Nullable;
 
-import dev.thefern2.tinytunnels.TinyTunnels;
+import dev.thefern2.tinytunnels.api.event.MachineEvent;
 import dev.thefern2.tinytunnels.loading.RoomTickets;
 import dev.thefern2.tinytunnels.registry.ModDataComponents;
 import dev.thefern2.tinytunnels.registry.ModTunnelKinds;
@@ -32,6 +32,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.common.NeoForge;
 
 /**
  * The machine logic shared by every {@link MachineHost}: which room it's bound to (the room ID
@@ -89,6 +90,7 @@ public final class MachineCore {
         RoomTickets.requestUpdate();
         data.room(room.id()).ifPresent(bound -> CapabilityUpdates.roomChanged(server, bound));
         RedstoneTunnels.refreshLater(level, owner.getBlockPos());
+        data.room(room.id()).ifPresent(bound -> NeoForge.EVENT_BUS.post(new MachineEvent.Placed(new HostMachineView(host), bound.view())));
     }
 
     /**
@@ -169,7 +171,6 @@ public final class MachineCore {
     // Follow the host: RoomTickets keeps the room loaded while this machine's chunk is ticking.
 
     public void onLoad() {
-        debug("onLoad");
         if (owner.getLevel() instanceof ServerLevel server) {
             RoomTickets.track(host);
             // Nudge both ends: pipes may have cached "nothing" before this machine or its room loaded.
@@ -181,23 +182,14 @@ public final class MachineCore {
     }
 
     public void onChunkUnloaded() {
-        debug("onChunkUnloaded");
         RoomTickets.untrack(host);
     }
 
     public void setRemoved() {
-        debug("setRemoved");
         RoomTickets.untrack(host);
         inside.clear();
     }
 
-    // TODO(debug): remove once follow-the-host loading is verified in-game.
-    private void debug(String event) {
-        Level level = owner.getLevel();
-        if (level == null || level.isClientSide()) return;
-        TinyTunnels.LOGGER.info("[TT-DEBUG] machine {} {} in {} room={}", event, owner.getBlockPos().toShortString(),
-                level.dimension().location(), roomId == null ? "none" : roomId.toString().substring(0, 8));
-    }
 
     /** True if another loaded (or not yet loaded) machine is the live host of this room. */
     static boolean isHostedElsewhere(MinecraftServer server, Room room, GlobalPos here) {
@@ -214,6 +206,8 @@ public final class MachineCore {
     public void preRemoveSideEffects(BlockPos pos) {
         if (roomId != null && owner.getLevel() instanceof ServerLevel server) {
             RoomData data = RoomData.get(server.getServer());
+            // Only the current host: a stale or duplicated machine going away changes nothing for the room.
+            hostedRoom().ifPresent(room -> NeoForge.EVENT_BUS.post(new MachineEvent.Removed(new HostMachineView(host), room.view())));
             // The inside stops seeing the redstone outside this machine.
             hostedRoom().ifPresent(room -> RedstoneTunnels.machineRemoved(server.getServer(), room));
             data.clearHostIf(roomId, GlobalPos.of(server.dimension(), pos));

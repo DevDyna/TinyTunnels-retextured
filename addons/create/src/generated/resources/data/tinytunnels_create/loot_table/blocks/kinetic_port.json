@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "tinytunnels_create:kinetic_port"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "tinytunnels_create:blocks/kinetic_port"
+}

@@ -26,6 +26,11 @@ public final class Config {
             .comment("Fluid (mB) a buffered tunnel holds.")
             .defineInRange("bufferFluidCapacity", 8000, 1000, 64000);
 
+    public static final ModConfigSpec.BooleanValue DELETING_ROOM_DESTROYS_CONTENTS = BUILDER
+            .comment("When true, deleting a room with the Tunnel Wrench destroys everything inside it, rooms nested in it too.",
+                    "When false, its blocks, items, tunnels and nested machines come back to the player; what doesn't fit drops at their feet.")
+            .define("deletingRoomDestroysContents", false);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 
     /** Server config values aren't loaded on a client or before the world starts; fall back to the defaults there. */
@@ -35,6 +40,10 @@ public final class Config {
 
     public static int bufferFluidCapacity() {
         return SPEC.isLoaded() ? BUFFER_FLUID_CAPACITY.getAsInt() : BUFFER_FLUID_CAPACITY.getDefault();
+    }
+
+    public static boolean deletingRoomDestroysContents() {
+        return SPEC.isLoaded() ? DELETING_ROOM_DESTROYS_CONTENTS.getAsBoolean() : DELETING_ROOM_DESTROYS_CONTENTS.getDefault();
     }
 
     private Config() {}

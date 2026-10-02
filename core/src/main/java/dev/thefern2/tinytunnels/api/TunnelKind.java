@@ -90,6 +90,14 @@ public interface TunnelKind<D> {
     /** The kind's name, for Jade, the machine tooltip and the room command. */
     Component displayName();
 
+    /**
+     * The action-bar message after this tunnel is placed or the wrench moves it to {@code face}, or null for core's
+     * generic one ("Tunnel linked to the machine's ... side").
+     */
+    default @Nullable Component placedMessage(Direction face, D data) {
+        return null;
+    }
+
     /** A one-line status for this tunnel (for example its mode), or null for none. */
     default @Nullable Component describe(D data) {
         return null;

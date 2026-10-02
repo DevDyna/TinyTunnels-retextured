@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:block/cube_all",
-  "textures": {
-    "all": "tinytunnels:block/kinetic_tunnel_wall_south_out"
-  }
-}

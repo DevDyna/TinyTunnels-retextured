@@ -2,7 +2,7 @@
 
 The agent team for the API split (`docs/plans/tiny-tunnels-api-and-addons.md`, phases A0–A8). Written 2026-10-01, for a new session.
 
-**Agreed with the user (2026-10-01):** A0 goes first. The team starts with the lead, core, client and QA; the Create addon engineer joins when A6 opens. The task list is `api-split-tasks.md`.
+**Agreed with the user (2026-10-01):** A0 goes first. The team starts with the lead, core, client and QA; the Create addon engineer joins when A6 opens. The task list is `api-split-tasks.md`. The Create addon engineer joined for A6 (2026-10-01); the user chose the addon id `tinytunnels_create`, its own version, and a simple port look for now.
 
 **Paths:** since A0, the mod lives in `core/` (`core/src/main/java/dev/thefern2/tinytunnels/...`). Package names didn't change. Run Gradle from the repository root; the commands are the same as before.
 
@@ -34,10 +34,11 @@ Five members. Start with the lead and the first two roles; add the others when t
 ### Builds and tests
 
 - **`./gradlew compileJava` is allowed for anyone, anytime.** Gradle queues concurrent builds on its own lock.
-- **GameTest runs belong to QA only** (`runGameTestServer`, with or without `-PnoCreate`). Each run deletes `run/gametest/world`, so two at once break each other. To get a run, message QA with what changed. QA replies with the result line, and the failures in full.
+- **GameTest runs belong to QA only** (`:core:runGameTestServer` and `:addons:create:runGameTestServer`). Each run deletes its world (`run/gametest/world`, `run/gametest-create/world`), so two at once break each other. To get a run, message QA with what changed. QA replies with the result line, and the failures in full.
 - **`runData` belongs to the client engineer only.** It rewrites `src/generated`.
 - **`runClient` is for the user's in-game testing.** QA prepares it, and the user plays.
 - **A failing test is reported, not chased.** QA reports it to the owner of the code and to the lead. The owner fixes it in a task. A flaky test gets a note in the testing doc and a todo line. It doesn't start an investigation without the lead's go (see the working agreements in the handoff).
+- **Intermittent failures go to the user, fast (user, 2026-10-02).** If a test fails only sometimes (passes alone, fails a few times under the full suite's load), stop after 2–3 failures: log the failure line (testing doc Notes and a todo line), write short in-game steps, and hand them to the user through the lead. Don't re-run it dozens of times or investigate further unless the user's in-game check shows a real problem. GameTests act far faster and more crowded than any player can.
 
 ### Tasks
 
@@ -57,7 +58,7 @@ Five members. Start with the lead and the first two roles; add the others when t
 The next phase opens only when:
 
 1. **Build:** `./gradlew build` passes.
-2. **Tests:** QA's runs pass, with Create and with `-PnoCreate`. The number of tests only goes up, unless the plan says a test was removed on purpose.
+2. **Tests:** QA's runs pass: core alone (`:core:`) and with the addon (`:addons:create:`; before A6.4: with Create and with `-PnoCreate`). The number of tests only goes up, unless the plan says a test was removed on purpose.
 3. **Docs:** the plan's phase row says done with the date, and the design doc matches the code.
 4. **In game, for phases that change what players see** (A3 looks, A6 port block): QA has written the checklist, and the lead asks the user to run it. Results are recorded in the checklist.
 

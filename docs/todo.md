@@ -5,7 +5,7 @@ One line per item; details are in `docs/todo/`. Items outside the phase plan (`d
 - Limit nesting, maybe with a setting?
 - Spawning on blocks, how to safely spawin inside a machine without getting stuck?
     - Save position per player on exiting?
-- How to pick up rooms in creative, how to delete, how to duplicate?
+- Machine block actions (pick up in creative, delete, duplicate, rotate, the survival pile-up of bound items): planned in `plans/tiny-tunnels-machine-management.md` (2026-10-02). **Priority before publishing.**
 - I still think machine needs letters outside before tunnels are added inside, it makes it hard to know what's what
 - On resorce reload error on 1.21 
 
@@ -14,7 +14,7 @@ One line per item; details are in `docs/todo/`. Items outside the phase plan (`d
 | Item | Size | Details |
 |---|---|---|
 | Room names (anvil, command, tooltip) | M | [room-names](todo/room-names.md) |
-| Debug config flag, split admin vs debug commands, remove `TT-DEBUG` logs | S | [debug-output](todo/debug-output.md) |
+| Debug config flag, split admin vs debug commands (`TT-DEBUG` logs already removed 2026-10-02) | S | [debug-output](todo/debug-output.md) |
 | Catch players and items falling out of rooms | S | [void-safety](todo/void-safety.md) |
 | **Pinned:** tunnel controls. Who rotates, configures and removes: current setup vs. a wrench screen (B + E) and others | M | [tunnel-controls](todo/tunnel-controls.md) |
 
@@ -24,8 +24,7 @@ One line per item; details are in `docs/todo/`. Items outside the phase plan (`d
 - Buffered tunnels: port to `main` (BT3, `plans/tiny-tunnels-buffered-tunnels.md`), queued in `docs/patches/to-main.md`.
 - In-game pass on 1.21.1 (`plans/tiny-tunnels-1-21-1-testing.md`), especially 6a-inside (Create factories) and the mod matrix.
 - CI: add a timeout to the GameTest step in `.github/workflows/build.yml`, so a rare 1.21.1 shutdown hang fails fast.
-- Flaky GameTest `redstone_item_and_ports`: fails about 1 in 10 runs with a null `actual`, likely a timing race.
-- Debug cleanup after testing: remove `loading/ShutdownWatchdog` and the `[TT-DEBUG]` logs in `MachineCore` and `RoomTickets` (goes with the debug-output item above).
+- Flaky GameTest `redstone_item_and_ports`: **fixed 2026-10-01, watching.** It failed about 1 in 10 runs with a null `actual`. The checks after the click (wall, mode, item used up) ran in the same tick as the click; they now wait in `succeedWhen`, and the mode check uses `assertTrue(... == IN)`. Afterwards it passed 10 of 10 single runs (`-PonlyTest=redstone_item_and_ports`) plus 1 with `-PnoCreate`, and the full runs (66 / 55). The same pattern was fixed the same day in `BufferedTunnelGameTests` `modeCycle`, `removal` and `bucket` and `KineticGameTests` `onePerMachine` and `plainMachineRefused`: each step waits in a `startSequence`, refusals check after 3 ticks, and `TestRooms.assertEquals` is null-safe. Each passed 3 of 3 single runs, and the full runs were 66 / 55.
 - Apply `docs/patches/to-main.md` on `main`: the cauldron GameTests (redo with transactions) and the `MachineSize` codec (copy). Then `scripts/sync-docs.sh`.
 - **B8 in progress (started 2026-09-29, ahead of B7):** kinetic tunnel with Create 6.0.8 (`plans/tiny-tunnels-kinetic-tunnel.md`). K0–K1e built, GameTests green (60 with Create, 48 with `-PnoCreate`). K2 in-game pass done 2026-09-30. Next: the paused Create checklist sections, and the core/API/addon split (`plans/tiny-tunnels-api-and-addons.md`), before the first release. The Create sections of the in-game checklist (6a, 6a-inside) are paused until K2.
 
@@ -48,3 +47,4 @@ From `docs/plans/tiny-tunnels-implementation.md`:
 - 2026-09-26: Letters on machine faces that have tunnels ([machine-face-labels](todo/machine-face-labels.md)). Tested.
 - 2026-09-26: Pipez extract flange across tunnels, fixed with client-side empty handlers ([pipe-visuals-across-tunnels](todo/pipe-visuals-across-tunnels.md)). Tested.
 - 2026-09-26: Tunnel Wrench for cycling and removal, plus any `c:tools/wrench` ([tunnel-removal](todo/tunnel-removal.md)). Tested.
+- GameTest `kinetic_machine_replaced` (addon) is fragile under the full suite's load: the room sometimes doesn't resume after a re-place (core `RoomTickets`). Fine in game (user, 2026-10-02). Runs only with `-PonlyTest`. Look at `RoomTickets` only if it shows up in play.
