@@ -61,6 +61,13 @@ public class ModRecipeProvider extends RecipeProvider {
                 .define('B', Items.BUCKET)
                 .unlockedBy("has_redstone", has(Tags.Items.DUSTS_REDSTONE))
                 .save(output);
+        // A wrench shape: iron jaws, a copper handle.
+        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ModItems.TUNNEL_WRENCH.get())
+                .pattern("I I").pattern(" C ").pattern(" C ")
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('C', Tags.Items.INGOTS_COPPER)
+                .unlockedBy("has_tunnel", has(ModItems.TUNNEL.get()))
+                .save(output);
         ShapelessRecipeBuilder.shapeless(RecipeCategory.REDSTONE, ModItems.REDSTONE_TUNNEL.get())
                 .requires(ModItems.TUNNEL.get())
                 .requires(Items.COMPARATOR)
