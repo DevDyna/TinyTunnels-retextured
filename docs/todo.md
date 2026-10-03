@@ -7,7 +7,8 @@ One line per item; details are in `docs/todo/`. Items outside the phase plan (`d
     - Save position per player on exiting?
 - Machine block actions (pick up in creative, delete, duplicate, rotate, the survival pile-up of bound items): planned in `plans/tiny-tunnels-machine-management.md` (2026-10-02). **Priority before publishing.**
 - I still think machine needs letters outside before tunnels are added inside, it makes it hard to know what's what
-- On resorce reload error on 1.21 
+- port needs a better texture on tabs
+- need a way to manage and delete machines and more importantly see whats inside somehow or list items, but def need to name them
 
 ## Open
 

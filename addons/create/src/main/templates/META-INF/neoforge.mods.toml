@@ -1,11 +1,17 @@
 modLoader="javafml"
 loaderVersion="${loader_version_range}"
 license="${mod_license}"
+issueTrackerURL="${mod_issues_url}"
 
 [[mods]]
 modId="${create_addon_mod_id}"
 version="${create_addon_version}"
 displayName="${create_addon_mod_name}"
+logoFile="logo.png"
+# Pixel art: scaled without smoothing.
+logoBlur=false
+displayURL="${mod_url}"
+authors="${mod_authors}"
 description='''
 The kinetic tunnel for Tiny Tunnels: Create rotation through a machine, with a port block outside.
 '''
